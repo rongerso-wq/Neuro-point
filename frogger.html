@@ -580,45 +580,46 @@ requestAnimationFrame(ts => { lastTs = ts; requestAnimationFrame(update); });
 
 
 
+
 <!-- TOUCH CONTROLS -->
 <style>
-#tc{position:fixed;bottom:0;left:0;right:0;height:180px;z-index:99999;pointer-events:none;}
 .dp-btn{
   position:fixed;
-  width:56px;height:56px;
-  background:#ffcc00;
-  border:3px solid #ff8800;
-  border-radius:12px;
+  width:42px;height:42px;
+  background:rgba(255,200,0,0.85);
+  border:2px solid #ff8800;
+  border-radius:8px;
   display:flex;align-items:center;justify-content:center;
-  font-size:26px;color:#000;font-weight:bold;
+  font-size:18px;color:#000;font-weight:bold;
   pointer-events:all;touch-action:none;
   -webkit-tap-highlight-color:transparent;
-  cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,0.5);
+  cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  z-index:99999;
 }
-.dp-btn:active{background:#ff8800;}
-#dp-up   {bottom:130px;left:30px;}
-#dp-down {bottom:20px; left:30px;}
-#dp-left {bottom:75px; left:0px;}
-#dp-right{bottom:75px; left:60px;}
+.dp-btn:active{background:rgba(255,140,0,0.95);}
+#dp-up   {bottom:100px;left:36px;}
+#dp-down {bottom:14px; left:36px;}
+#dp-left {bottom:57px; left:0px; }
+#dp-right{bottom:57px; left:72px;}
 #dp-fire {
-  position:fixed;bottom:30px;right:20px;
-  width:72px;height:72px;
-  background:#ff3333;border:3px solid #cc0000;border-radius:50%;
+  position:fixed;bottom:20px;right:14px;
+  width:54px;height:54px;
+  background:rgba(220,40,40,0.85);
+  border:2px solid #cc0000;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:bold;color:#fff;
+  font-size:12px;font-weight:bold;color:#fff;
   pointer-events:all;touch-action:none;
   -webkit-tap-highlight-color:transparent;
-  cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,0.5);
+  cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  z-index:99999;
 }
-#dp-fire:active{background:#cc0000;}
+#dp-fire:active{background:rgba(180,0,0,0.95);}
 </style>
-<div id="tc">
-  <div class="dp-btn" id="dp-up">&#9650;</div>
-  <div class="dp-btn" id="dp-left">&#9664;</div>
-  <div class="dp-btn" id="dp-right">&#9654;</div>
-  <div class="dp-btn" id="dp-down">&#9660;</div>
-  <div id="dp-fire">FIRE</div>
-</div>
+<div class="dp-btn" id="dp-up">&#9650;</div>
+<div class="dp-btn" id="dp-left">&#9664;</div>
+<div class="dp-btn" id="dp-right">&#9654;</div>
+<div class="dp-btn" id="dp-down">&#9660;</div>
+<div id="dp-fire">FIRE</div>
 <script>
 (function(){
   function fire(code,type){
