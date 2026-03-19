@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dental Clinic — Profitability Calculator</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #eef4fb; color: #1a2b3c; min-height: 100vh; -webkit-text-size-adjust: 100%; }
+
+    /* ── Layout ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 16px 12px 48px; }
+    @media (min-width: 600px) { .page { padding: 24px 20px 56px; } }
+    @media (min-width: 900px) { .page { padding: 32px 28px 60px; } }
+
+    /* ── Header ── */
+    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .logo-mark { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; overflow: hidden; }
+    .logo-mark svg { width: 100%; height: 100%; }
+    .header-text { flex: 1; min-width: 180px; }
+    .clinic-name-input {
+      font-size: clamp(1rem, 4vw, 1.45rem); font-weight: 700; color: #0d1f2d;
+      border: none; background: transparent; outline: none; width: 100%;
+      border-bottom: 2px dashed transparent; padding: 1px 0;
+      transition: border-color 0.2s;
+    }
+    .clinic-name-input:hover, .clinic-name-input:focus { border-bottom-color: #0369a1; }
+    .header-sub { font-size: clamp(0.68rem, 2.2vw, 0.82rem); color: #5f7a8f; margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    /* ── Currency pills ── */
+    .currency-pills { display: flex; gap: 4px; }
+    .currency-pill {
+      padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+      border: 1.5px solid #cde0f0; background: #fff; color: #5f7a8f; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .currency-pill.active { background: #0369a1; border-color: #0369a1; color: #fff; }
+
+    /* ── Icon buttons ── */
+    .btn-icon {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 8px;
+      border: 1.5px solid #cde0f0; background: #fff; color: #5f7a8f;
+      cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+    }
+    .btn-icon:hover { background: #e0eefc; border-color: #0369a1; color: #0369a1; }
+
+    /* ── Presets bar ── */
+    .presets-bar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      background: #fff; border: 1px solid #dce8f5; border-radius: 12px;
+      padding: 10px 14px; margin-bottom: 14px;
+    }
+    .presets-bar label { font-size: 0.72rem; font-weight: 700; color: #7c97ae; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 4px; }
+    .btn-sm {
+      padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid #cde0f0; background: #fff; color: #374151; cursor: pointer;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-sm:hover { background: #e0eefc; border-color: #0369a1; color: #0369a1; }
+    .btn-sm.primary { background: #0369a1; border-color: #0369a1; color: #fff; }
+    .btn-sm.primary:hover { background: #024e78; }
+    .btn-sm.danger { border-color: #fca5a5; color: #dc2626; }
+    .btn-sm.danger:hover { background: #fee2e2; }
+    .preset-select {
+      padding: 5px 8px; border-radius: 6px; border: 1.5px solid #cde0f0;
+      font-size: 0.78rem; color: #374151; background: #fff; cursor: pointer; max-width: 160px;
+    }
+    .spacer { flex: 1; }
+
+    /* ── Cards ── */
+    .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #dce8f5; }
+    @media (min-width: 600px) { .card { padding: 20px; border-radius: 16px; } }
+    @media (min-width: 900px) { .card { padding: 24px; } }
+    .section-gap { margin-top: 14px; }
+    @media (min-width: 600px) { .section-gap { margin-top: 20px; } }
+
+    /* ── Card title with collapse ── */
+    .card-title {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #7c97ae;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; cursor: pointer; user-select: none;
+      transition: color 0.15s;
+    }
+    .card-title:hover { color: #0369a1; }
+    .card-title .collapse-icon { font-size: 0.65rem; opacity: 0.7; }
+    .card-title.no-collapse { cursor: default; margin-bottom: 14px; }
+    .card-title.no-collapse:hover { color: #7c97ae; }
+
+    /* ── Grids ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 480px) { .grid-3 { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+    @media (min-width: 860px) { .grid-2 { grid-template-columns: 1fr 1fr; gap: 20px; } }
+
+    /* ── Treatment grid ── */
+    .treatment-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 600px) { .treatment-grid { grid-template-columns: 1fr 1fr; gap: 14px; } }
+
+    .treatment-card {
+      border: 1.5px solid #dce8f5; border-radius: 12px; padding: 14px 14px 10px;
+      background: #fafcff;
+    }
+    .treatment-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; gap: 6px;
+    }
+    .treatment-name { font-size: 0.8rem; font-weight: 700; color: #2c4a5e; display: flex; align-items: center; gap: 6px; }
+    .treatment-revenue-badge {
+      font-size: 0.82rem; font-weight: 800; color: #0369a1;
+      background: #e0eefb; padding: 2px 8px; border-radius: 5px; white-space: nowrap;
+    }
+
+    /* ── Sliders ── */
+    .slider-row { margin-bottom: 12px; }
+    .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+    .slider-label { font-size: clamp(0.75rem, 2.5vw, 0.84rem); font-weight: 600; color: #2c4a5e; display: flex; align-items: center; gap: 5px; }
+    .slider-value { font-size: clamp(0.88rem, 2.8vw, 1rem); font-weight: 700; color: #0369a1; background: #e8f3fd; padding: 2px 8px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+
+    input[type=range] { -webkit-appearance: none; width: 100%; height: 7px; border-radius: 4px; background: #cfe1f5; outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #0369a1; box-shadow: 0 2px 7px rgba(3,105,161,0.45); cursor: pointer; transition: transform 0.15s; }
+    input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+    input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; border: none; background: #0369a1; box-shadow: 0 2px 7px rgba(3,105,161,0.45); }
+    @media (min-width: 900px) { input[type=range] { height: 5px; } input[type=range]::-webkit-slider-thumb { width: 20px; height: 20px; } input[type=range]::-moz-range-thumb { width: 20px; height: 20px; } }
+    .slider-hints { display: flex; justify-content: space-between; font-size: 0.67rem; color: #9db5c4; margin-top: 3px; }
+
+    /* ── Tooltip ── */
+    .tooltip-btn { background: none; border: 1.5px solid #b0c8de; border-radius: 50%; width: 16px; height: 16px; font-size: 0.62rem; font-weight: 700; color: #7c97ae; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+    .tooltip-btn:hover, .tooltip-btn.open { background: #0369a1; border-color: #0369a1; color: #fff; }
+    .tooltip-box { background: #0c4a6e; color: #e0eefb; font-size: 0.75rem; line-height: 1.5; border-radius: 8px; padding: 8px 12px; margin-top: 6px; margin-bottom: 8px; }
+
+    /* ── KPI cards ── */
+    .kpi-card { border-radius: 14px; padding: 14px; text-align: center; transition: transform 0.2s; }
+    @media (min-width: 600px) { .kpi-card { padding: 18px; } }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-card.highlight { background: linear-gradient(135deg, #0369a1, #024e78); color: white; box-shadow: 0 6px 20px rgba(3,105,161,0.35); }
+    .kpi-card.neutral   { background: #f8fbff; border: 1px solid #d0e4f5; }
+    .kpi-card.amber     { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; box-shadow: 0 6px 20px rgba(245,158,11,0.35); }
+    .kpi-card.green     { background: linear-gradient(135deg, #059669, #047857); color: white; box-shadow: 0 6px 20px rgba(5,150,105,0.35); }
+    .kpi-card.red       { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; box-shadow: 0 6px 20px rgba(220,38,38,0.3); }
+    .kpi-icon  { font-size: 1.4rem; margin-bottom: 5px; }
+    .kpi-value { font-size: clamp(1.3rem, 5vw, 1.9rem); font-weight: 800; line-height: 1.1; }
+    .kpi-card.neutral .kpi-value { color: #0c4a6e; }
+    .kpi-label { font-size: clamp(0.6rem, 1.8vw, 0.7rem); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; opacity: 0.85; }
+    .kpi-card.neutral .kpi-label { color: #5f7a8f; }
+    .kpi-sub   { font-size: 0.68rem; margin-top: 4px; opacity: 0.75; }
+
+    /* ── Bars ── */
+    .bar-row     { margin-bottom: 12px; }
+    .bar-label   { display: flex; justify-content: space-between; font-size: 0.76rem; font-weight: 600; color: #374151; margin-bottom: 5px; gap: 4px; }
+    .bar-amount  { font-weight: 700; color: #0c4a6e; white-space: nowrap; flex-shrink: 0; }
+    .bar-track   { height: 12px; background: #e8f0f6; border-radius: 6px; overflow: hidden; }
+    .bar-fill    { height: 100%; border-radius: 6px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+    .bar-staff     { background: linear-gradient(90deg, #0369a1, #38bdf8); }
+    .bar-materials { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+    .bar-fixed     { background: linear-gradient(90deg, #d97706, #fbbf24); }
+    .bar-profit    { background: linear-gradient(90deg, #059669, #34d399); }
+    .bar-loss      { background: linear-gradient(90deg, #dc2626, #f87171); }
+    .bar-t0 { background: linear-gradient(90deg,#0369a1,#38bdf8); }
+    .bar-t1 { background: linear-gradient(90deg,#0891b2,#67e8f9); }
+    .bar-t2 { background: linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .bar-t3 { background: linear-gradient(90deg,#059669,#34d399); }
+    .bar-t4 { background: linear-gradient(90deg,#d97706,#fbbf24); }
+    .bar-t5 { background: linear-gradient(90deg,#db2777,#f9a8d4); }
+
+    /* ── Utilization ── */
+    .util-bar-track { height: 14px; background: #e8f0f6; border-radius: 7px; overflow: hidden; margin: 6px 0; }
+    .util-bar-fill  { height: 100%; border-radius: 7px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+    .util-green { background: linear-gradient(90deg, #059669, #34d399); }
+    .util-amber { background: linear-gradient(90deg, #d97706, #fbbf24); }
+    .util-red   { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+    /* ── P&L table ── */
+    .revenue-breakdown { margin-top: 8px; }
+    .rev-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eef3f8; gap: 6px; }
+    .rev-row:last-child { border-bottom: none; }
+    .rev-name   { font-size: 0.8rem; font-weight: 500; color: #374151; flex: 1; }
+    .rev-tag    { font-size: 0.65rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; display: none; }
+    @media (min-width: 480px) { .rev-tag { display: inline-block; } }
+    .tag-expense { background: #fee2e2; color: #991b1b; }
+    .tag-profit  { background: #dcfce7; color: #166534; }
+    .tag-revenue { background: #fef3c7; color: #92400e; }
+    .rev-amount  { font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
+
+    /* ── Donut ring ── */
+    .ring-section { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 10px; }
+    @media (min-width: 480px) { .ring-section { flex-direction: row; } }
+    .ring-container { position: relative; flex-shrink: 0; }
+    .ring-label-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .ring-pct { font-size: clamp(1rem, 3.5vw, 1.3rem); font-weight: 800; }
+    .ring-sub { font-size: 0.55rem; color: #7c97ae; font-weight: 600; }
+    .ring-legend { flex: 1; width: 100%; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-text { font-size: 0.76rem; color: #374151; }
+    .legend-val  { font-size: 0.76rem; font-weight: 700; margin-left: auto; color: #1a2b3c; }
+
+    /* ── Scenario comparison ── */
+    .comparison-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 12px; }
+    .comparison-table th { padding: 6px 10px; text-align: left; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #7c97ae; border-bottom: 2px solid #dce8f5; }
+    .comparison-table td { padding: 8px 10px; border-bottom: 1px solid #eef3f8; vertical-align: middle; }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .delta-pos { color: #059669; font-weight: 700; }
+    .delta-neg { color: #dc2626; font-weight: 700; }
+    .delta-neu { color: #6b7280; }
+
+    /* ── Misc ── */
+    .animated { transition: all 0.35s ease; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.67rem; font-weight: 700; }
+    .pill-green { background: #dcfce7; color: #166534; }
+    .pill-amber { background: #fef3c7; color: #92400e; }
+    .pill-red   { background: #fee2e2; color: #991b1b; }
+    .pill-blue  { background: #dbeafe; color: #1e40af; }
+    .info-box { background: #eff6ff; border-radius: 10px; padding: 12px 14px; border: 1px solid #bfdbfe; }
+    .info-box-title { font-size: 0.7rem; font-weight: 700; color: #1e40af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .info-box-body  { font-size: clamp(0.7rem, 2vw, 0.78rem); color: #1e3a5f; line-height: 1.7; }
+    .divider { height: 1px; background: #eef3f8; margin: 14px 0; }
+    .footnote { font-size: 0.68rem; color: #9db5c4; margin-top: 20px; border-top: 1px solid #e2eaf2; padding-top: 10px; line-height: 1.7; }
+
+    /* ── Print ── */
+    @media print {
+      body { background: #fff; }
+      .page { padding: 0; max-width: 100%; }
+      .no-print { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+      .section-gap { margin-top: 10px; }
+      input[type=range], .presets-bar, .header-actions, .currency-pills { display: none !important; }
+      .slider-header { margin-bottom: 2px; }
+      .slider-row { margin-bottom: 8px; }
+      .print-header { display: block !important; font-size: 0.75rem; color: #666; margin-bottom: 12px; }
+    }
+    .print-header { display: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect, useCallback } = React;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n, d = 0) => (isFinite(n) ? n : 0).toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+const CURRENCIES = { EUR: '€', USD: '$', GBP: '£', NIS: '₪' };
+const RATES      = { EUR: 1,   USD: 1.08, GBP: 0.85, NIS: 3.95 }; // approx. rates vs EUR
+
+const TREATMENTS = [
+  { key: 'preventive',  label: 'Preventive / Exams',     icon: '🔍', dVol: 800, dPrice: 80,   maxVol: 3000, maxPrice: 250,
+    tip: 'Check-ups, X-rays, caries screening. High volume but lower revenue per visit.' },
+  { key: 'hygiene',     label: 'Hygiene / Cleaning',      icon: '🦷', dVol: 600, dPrice: 95,   maxVol: 2000, maxPrice: 250,
+    tip: 'Prophylaxis, scaling, polishing. Often performed by hygienists alongside dentist visits.' },
+  { key: 'restorative', label: 'Restorative',             icon: '🔧', dVol: 350, dPrice: 220,  maxVol: 2000, maxPrice: 600,
+    tip: 'Fillings, inlays, onlays. Core revenue driver for most dental practices.' },
+  { key: 'endo',        label: 'Endodontics',              icon: '🩺', dVol: 80,  dPrice: 380,  maxVol: 500,  maxPrice: 1000,
+    tip: 'Root canal treatments. Lower volume, higher price, and longer chair time per case.' },
+  { key: 'prosthetics', label: 'Prosthetics / Cosmetic',  icon: '👑', dVol: 70,  dPrice: 750,  maxVol: 500,  maxPrice: 3000,
+    tip: 'Crowns, bridges, veneers, dentures, whitening. High revenue per procedure.' },
+  { key: 'implants',    label: 'Implants',                 icon: '⚙️', dVol: 25,  dPrice: 1600, maxVol: 200,  maxPrice: 5000,
+    tip: 'Implant placement and restoration. Highest value procedure, significant lab costs.' },
+];
+
+const TIPS = {
+  patients: 'Active patients: unique individuals who visit at least once per year. Used for chair utilization and per-patient KPIs.',
+  dentists: 'Number of operating dentists / chairs. Directly affects chair utilization.',
+  workingDays: 'Clinic operating days per year. Full-time clinics: 220–240. Part-time: 150–180.',
+  visitDuration: 'Average chair time per visit including setup and cleanup. Used to calculate chair utilization.',
+  staffPct: 'Staff costs as % of revenue: dentist salary (if employed), hygienists, nurses, reception. Industry benchmark: 35–50%.',
+  materialsPct: 'Materials and lab fees as % of revenue. Higher for prosthetic/implant-heavy clinics. Benchmark: 15–25%.',
+  fixedCosts: 'Annual fixed costs regardless of volume: rent, utilities, insurance, equipment depreciation, software, and non-clinical admin.',
+};
+
+function Ring({ pct, size = 130, stroke = 13, color = '#0369a1' }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const pf = c * Math.max(0, Math.min(100, pct)) / 100;
+  const ef = c - pf;
+  const cx = size / 2;
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke="#e8f0f6" strokeWidth={stroke} />
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke="#e74c3c" strokeWidth={stroke}
+        strokeDasharray={`${ef} ${pf}`} style={{ transition: 'stroke-dasharray 0.4s ease' }} />
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={`${pf} ${ef}`} strokeDashoffset={-ef}
+        style={{ transition: 'stroke-dasharray 0.4s ease' }} />
+    </svg>
+  );
+}
+
+function TooltipSlider({ tipKey, activeTooltip, toggleTooltip, label, value, min, max, step, onChange, hints, display }) {
+  return (
+    <div className="slider-row">
+      <div className="slider-header">
+        <span className="slider-label">
+          {label}
+          {tipKey && (
+            <button className={`tooltip-btn no-print ${activeTooltip === tipKey ? 'open' : ''}`}
+              onClick={() => toggleTooltip(tipKey)}>?</button>
+          )}
+        </span>
+        <span className="slider-value animated">{display !== undefined ? display : value}</span>
+      </div>
+      {activeTooltip === tipKey && TIPS[tipKey] && (
+        <div className="tooltip-box">{TIPS[tipKey]}</div>
+      )}
+      <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(+e.target.value)} className="no-print" />
+      {hints && <div className="slider-hints no-print"><span>{hints[0]}</span><span>{hints[1]}</span></div>}
+    </div>
+  );
+}
+
+function SectionCard({ id, title, collapsed, onToggle, children, className = '' }) {
+  return (
+    <div className={`card ${className}`}>
+      <div className="card-title" onClick={onToggle}>
+        <span>{title}</span>
+        <span className="collapse-icon no-print">{collapsed ? '▶ expand' : '▼ collapse'}</span>
+      </div>
+      {!collapsed && children}
+    </div>
+  );
+}
+
+// ── Main App ─────────────────────────────────────────────────────────────────
+function App() {
+  // Meta
+  const [clinicName,    setClinicName]    = useState('My Dental Clinic');
+  const [currency,      setCurrency]      = useState('EUR');
+  const [isFullscreen,  setIsFullscreen]  = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState(null);
+  const [collapsed,     setCollapsed]     = useState({});
+  const [presets,       setPresets]       = useState([]);
+  const [reference,     setReference]     = useState(null);
+  const [selectedPreset, setSelectedPreset] = useState('');
+
+  const M    = CURRENCIES[currency];
+  const rate = RATES[currency];
+  const fmtM = (n) => `${M}\u202f${fmt(Math.round(n * rate))}`;
+
+  const toggleTooltip  = (k) => setActiveTooltip(p => p === k ? null : k);
+  const toggleSection  = (id) => setCollapsed(p => ({ ...p, [id]: !p[id] }));
+
+  // Load presets from localStorage
+  useEffect(() => {
+    try { setPresets(JSON.parse(localStorage.getItem('dental-calc-presets') || '[]')); } catch {}
+    const h = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', h);
+    return () => document.removeEventListener('fullscreenchange', h);
+  }, []);
+
+  // ── Section 1: Clinic Setup ──────────────────────────────────────────────
+  const [patients,     setPatients]     = useState(1200);
+  const [dentists,     setDentists]     = useState(2);
+  const [workingDays,  setWorkingDays]  = useState(220);
+  const [visitDuration, setVisitDuration] = useState(50);
+
+  // ── Section 2: Treatment Mix ─────────────────────────────────────────────
+  const [treatments, setTreatments] = useState(
+    TREATMENTS.map(t => ({ volume: t.dVol, price: t.dPrice }))
+  );
+  const updTreatment = (i, field, val) =>
+    setTreatments(prev => prev.map((t, j) => j === i ? { ...t, [field]: val } : t));
+
+  // ── Section 3: Costs ─────────────────────────────────────────────────────
+  const [staffPct,    setStaffPct]    = useState(42);
+  const [materialsPct,setMaterialsPct]= useState(18);
+  const [fixedCosts,  setFixedCosts]  = useState(80000);
+
+  // ── Calculations ─────────────────────────────────────────────────────────
+  const tRevs        = useMemo(() => treatments.map(t => t.volume * t.price), [treatments]);
+  const totalVisits  = useMemo(() => treatments.reduce((s, t) => s + t.volume, 0), [treatments]);
+  const grossRevenue = useMemo(() => tRevs.reduce((s, v) => s + v, 0), [tRevs]);
+  const maxTRev      = useMemo(() => Math.max(...tRevs, 1), [tRevs]);
+
+  const staffCost    = useMemo(() => grossRevenue * staffPct / 100, [grossRevenue, staffPct]);
+  const matCost      = useMemo(() => grossRevenue * materialsPct / 100, [grossRevenue, materialsPct]);
+  const totalCosts   = useMemo(() => staffCost + matCost + fixedCosts, [staffCost, matCost, fixedCosts]);
+  const netProfit    = useMemo(() => grossRevenue - totalCosts, [grossRevenue, totalCosts]);
+  const profitMargin = useMemo(() => grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0, [netProfit, grossRevenue]);
+
+  const revPerDentist = useMemo(() => dentists > 0 ? grossRevenue / dentists : 0, [grossRevenue, dentists]);
+  const revPerPatient = useMemo(() => patients > 0 ? grossRevenue / patients : 0, [grossRevenue, patients]);
+  const profitPerPt   = useMemo(() => patients > 0 ? netProfit / patients : 0, [netProfit, patients]);
+  const blendedRPV    = useMemo(() => totalVisits > 0 ? grossRevenue / totalVisits : 0, [grossRevenue, totalVisits]);
+
+  const chairHrsNeeded = useMemo(() => (totalVisits * visitDuration) / 60, [totalVisits, visitDuration]);
+  const chairHrsAvail  = useMemo(() => dentists * workingDays * 7, [dentists, workingDays]);
+  const utilization    = useMemo(() => chairHrsAvail > 0 ? (chairHrsNeeded / chairHrsAvail) * 100 : 0, [chairHrsNeeded, chairHrsAvail]);
+
+  const cmPct        = useMemo(() => Math.max(0.001, 1 - (staffPct + materialsPct) / 100), [staffPct, materialsPct]);
+  const cmPerPt      = useMemo(() => (totalVisits / Math.max(patients, 1)) * blendedRPV * cmPct, [totalVisits, patients, blendedRPV, cmPct]);
+  const breakEven    = useMemo(() => cmPerPt > 0 ? Math.ceil(fixedCosts / cmPerPt) : Infinity, [fixedCosts, cmPerPt]);
+
+  const wStaff = staffPct;
+  const wMat   = materialsPct;
+  const wFixed = grossRevenue > 0 ? Math.min(100, (fixedCosts / grossRevenue) * 100) : 0;
+  const wProfit = Math.max(0, profitMargin);
+
+  const utilClass    = utilization < 70 ? 'util-green' : utilization < 90 ? 'util-amber' : 'util-red';
+  const utilLabel    = utilization < 70 ? 'Under-utilized' : utilization < 90 ? 'Well-utilized' : 'Over-capacity';
+  const utilPill     = utilization < 70 ? 'pill-green' : utilization < 90 ? 'pill-amber' : 'pill-red';
+
+  // ── Presets ───────────────────────────────────────────────────────────────
+  const getState = () => ({
+    clinicName, currency, patients, dentists, workingDays, visitDuration,
+    treatments, staffPct, materialsPct, fixedCosts
+  });
+
+  const applyState = (s) => {
+    setClinicName(s.clinicName || 'My Dental Clinic');
+    setCurrency(s.currency || 'EUR');
+    setPatients(s.patients); setDentists(s.dentists);
+    setWorkingDays(s.workingDays); setVisitDuration(s.visitDuration);
+    setTreatments(s.treatments);
+    setStaffPct(s.staffPct); setMaterialsPct(s.materialsPct); setFixedCosts(s.fixedCosts);
+  };
+
+  const savePreset = () => {
+    const name = window.prompt('Name this preset:', clinicName);
+    if (!name) return;
+    const updated = [...presets, { name, date: new Date().toLocaleDateString(), state: getState() }];
+    setPresets(updated);
+    localStorage.setItem('dental-calc-presets', JSON.stringify(updated));
+  };
+
+  const loadPreset = () => {
+    const idx = presets.findIndex(p => p.name === selectedPreset);
+    if (idx >= 0) applyState(presets[idx].state);
+  };
+
+  const deletePreset = () => {
+    const updated = presets.filter(p => p.name !== selectedPreset);
+    setPresets(updated);
+    setSelectedPreset('');
+    localStorage.setItem('dental-calc-presets', JSON.stringify(updated));
+  };
+
+  const saveReference = () => setReference({ grossRevenue, netProfit, profitMargin, totalCosts, utilization, breakEven, revPerDentist });
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    else document.exitFullscreen().catch(() => {});
+  };
+
+  const delta = (curr, ref) => {
+    const d = curr - ref;
+    const cls = d > 0 ? 'delta-pos' : d < 0 ? 'delta-neg' : 'delta-neu';
+    return <span className={cls}>{d >= 0 ? '+' : ''}{fmt(d)}</span>;
+  };
+  const deltaEur = (curr, ref) => {
+    const d = curr - ref;
+    const cls = d > 0 ? 'delta-pos' : d < 0 ? 'delta-neg' : 'delta-neu';
+    return <span className={cls}>{d >= 0 ? '+' : ''}{fmtM(d)}</span>;
+  };
+  const deltaPct = (curr, ref) => {
+    const d = curr - ref;
+    const cls = d > 0 ? 'delta-pos' : d < 0 ? 'delta-neg' : 'delta-neu';
+    return <span className={cls}>{d >= 0 ? '+' : ''}{fmt(d, 1)} pp</span>;
+  };
+
+  return (
+    <div className="page">
+
+      {/* ── Print header (only visible when printing) ── */}
+      <div className="print-header">
+        <strong>{clinicName}</strong> — Profitability Report &nbsp;·&nbsp; {new Date().toLocaleDateString()}<br />
+        Revenue: {fmtM(grossRevenue)} &nbsp;·&nbsp; Net Profit: {fmtM(netProfit)} &nbsp;·&nbsp; Margin: {fmt(profitMargin, 1)}%
+      </div>
+
+      {/* ── Header ── */}
+      <div className="header">
+        <div className="logo-mark">
+          <svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+            <rect width="150" height="150" rx="28" fill="#0c4a6e"/>
+            <path d="M75 22 C56 22 40 36 40 54 C40 64 44 72 44 84 C44 100 48 128 58 128 C64 128 67 112 75 112 C83 112 86 128 92 128 C102 128 106 100 106 84 C106 72 110 64 110 54 C110 36 94 22 75 22 Z" fill="white" opacity="0.93"/>
+          </svg>
+        </div>
+        <div className="header-text">
+          <input className="clinic-name-input" value={clinicName} onChange={e => setClinicName(e.target.value)} />
+          <div className="header-sub">Profitability &amp; Chair Utilization Calculator</div>
+        </div>
+        <div className="header-actions no-print">
+          <div className="currency-pills">
+            {Object.keys(CURRENCIES).map(c => (
+              <button key={c} className={`currency-pill ${currency === c ? 'active' : ''}`} onClick={() => setCurrency(c)}>{c}</button>
+            ))}
+          </div>
+          <button className="btn-icon" onClick={() => window.print()} title="Print / Export PDF">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+          </button>
+          <button className="btn-icon" onClick={toggleFullscreen} title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>
+            {isFullscreen
+              ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/><polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/></svg>
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+
+      {/* ── Presets bar ── */}
+      <div className="presets-bar no-print">
+        <label>Presets</label>
+        <button className="btn-sm" onClick={savePreset}>💾 Save</button>
+        {presets.length > 0 && <>
+          <select className="preset-select" value={selectedPreset} onChange={e => setSelectedPreset(e.target.value)}>
+            <option value="">— select —</option>
+            {presets.map(p => <option key={p.name} value={p.name}>{p.name} ({p.date})</option>)}
+          </select>
+          <button className="btn-sm primary" onClick={loadPreset} disabled={!selectedPreset}>Load</button>
+          <button className="btn-sm danger" onClick={deletePreset} disabled={!selectedPreset}>Delete</button>
+        </>}
+        <div className="spacer" />
+        <button className="btn-sm" onClick={saveReference} title="Save current results as reference for comparison">
+          📌 Save as Reference
+        </button>
+        {reference && <button className="btn-sm danger" onClick={() => setReference(null)}>✕ Clear reference</button>}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          SECTION 1 — CLINIC SETUP
+      ══════════════════════════════════════════════════════════════════ */}
+      <SectionCard id="setup" title="🏥 Clinic Setup" collapsed={collapsed.setup} onToggle={() => toggleSection('setup')}>
+        <div className="grid-2">
+          <div>
+            <TooltipSlider tipKey="patients" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Active patients" value={patients} min={300} max={5000} step={50}
+              onChange={setPatients} hints={['300', '5,000']} display={fmt(patients)} />
+            <TooltipSlider tipKey="dentists" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Dentists on staff" value={dentists} min={1} max={10} step={1}
+              onChange={setDentists} hints={['1', '10']} display={dentists} />
+            <TooltipSlider tipKey="workingDays" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Working days / year" value={workingDays} min={150} max={260} step={5}
+              onChange={setWorkingDays} hints={['150', '260']} display={`${workingDays} d`} />
+            <TooltipSlider tipKey="visitDuration" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Avg visit duration" value={visitDuration} min={20} max={120} step={5}
+              onChange={setVisitDuration} hints={['20 min', '120 min']} display={`${visitDuration} min`} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="kpi-card neutral">
+                <div className="kpi-icon">📅</div>
+                <div className="kpi-value animated">{fmt(totalVisits)}</div>
+                <div className="kpi-label">Annual visits</div>
+                <div className="kpi-sub">across all treatments</div>
+              </div>
+              <div className="kpi-card neutral">
+                <div className="kpi-icon">👤</div>
+                <div className="kpi-value animated">{fmt(Math.round(patients / dentists))}</div>
+                <div className="kpi-label">Patients / dentist</div>
+                <div className="kpi-sub">{dentists} dentist{dentists > 1 ? 's' : ''} on staff</div>
+              </div>
+            </div>
+            {/* Chair utilization */}
+            <div className="card" style={{ background: '#f8fbff', border: '1px solid #d0e4f5', padding: '14px' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#7c97ae', marginBottom: 8 }}>
+                ⏱ Chair Utilization
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5, gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.78rem', color: '#374151', fontWeight: 600 }}>
+                  {fmt(chairHrsNeeded, 0)}h needed · {fmt(chairHrsAvail)}h available
+                </span>
+                <span className={`pill ${utilPill}`}>{utilLabel}</span>
+              </div>
+              <div className="util-bar-track">
+                <div className={`util-bar-fill ${utilClass}`} style={{ width: `${Math.min(100, utilization)}%` }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#7c97ae', marginTop: 4 }}>
+                <span>{fmt(utilization, 1)}% utilized</span>
+                <span>{dentists} dentist{dentists > 1 ? 's' : ''} × {workingDays}d × 7h</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          SECTION 2 — TREATMENT MIX
+      ══════════════════════════════════════════════════════════════════ */}
+      <SectionCard id="mix" title="🦷 Treatment Revenue Mix" collapsed={collapsed.mix} onToggle={() => toggleSection('mix')} className="section-gap">
+        <div className="grid-2">
+          {/* Treatment cards */}
+          <div className="treatment-grid" style={{ gridColumn: '1 / -1' }}>
+            {TREATMENTS.map((tr, i) => {
+              const rev = treatments[i].volume * treatments[i].price;
+              const barW = grossRevenue > 0 ? (rev / grossRevenue) * 100 : 0;
+              return (
+                <div key={tr.key} className="treatment-card">
+                  <div className="treatment-card-header">
+                    <span className="treatment-name">{tr.icon} {tr.label}</span>
+                    <span className="treatment-revenue-badge animated">{fmtM(rev)}</span>
+                  </div>
+                  {/* Revenue share bar */}
+                  <div className="bar-track" style={{ marginBottom: 10, height: 8 }}>
+                    <div className={`bar-fill bar-t${i}`} style={{ width: `${barW}%` }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <div>
+                      <div className="slider-header" style={{ marginBottom: 4 }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#2c4a5e' }}>Procedures/yr</span>
+                        <span className="slider-value" style={{ fontSize: '0.82rem', padding: '1px 6px' }}>{fmt(treatments[i].volume)}</span>
+                      </div>
+                      <input type="range" min={0} max={tr.maxVol} step={10} className="no-print"
+                        value={treatments[i].volume} onChange={e => updTreatment(i, 'volume', +e.target.value)} />
+                    </div>
+                    <div>
+                      <div className="slider-header" style={{ marginBottom: 4 }}>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#2c4a5e' }}>Avg price</span>
+                        <span className="slider-value" style={{ fontSize: '0.82rem', padding: '1px 6px' }}>{fmtM(treatments[i].price)}</span>
+                      </div>
+                      <input type="range" min={10} max={tr.maxPrice} step={10} className="no-print"
+                        value={treatments[i].price} onChange={e => updTreatment(i, 'price', +e.target.value)} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#7c97ae', marginTop: 6 }}>{tr.tip}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Revenue summary */}
+        <div className="divider" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          <div className="kpi-card highlight">
+            <div className="kpi-icon">💰</div>
+            <div className="kpi-value animated">{fmtM(grossRevenue)}</div>
+            <div className="kpi-label">Total Revenue</div>
+            <div className="kpi-sub">{fmt(totalVisits)} procedures/year</div>
+          </div>
+          <div className="kpi-card neutral">
+            <div className="kpi-icon">📊</div>
+            <div className="kpi-value animated">{fmtM(blendedRPV)}</div>
+            <div className="kpi-label">Blended avg / visit</div>
+            <div className="kpi-sub">across all treatments</div>
+          </div>
+          <div className="kpi-card neutral">
+            <div className="kpi-icon">💵</div>
+            <div className="kpi-value animated">{fmtM(revPerPatient)}</div>
+            <div className="kpi-label">Revenue / patient</div>
+            <div className="kpi-sub">per year</div>
+          </div>
+          <div className="kpi-card neutral">
+            <div className="kpi-icon">🏆</div>
+            <div className="kpi-value animated">{fmtM(revPerDentist)}</div>
+            <div className="kpi-label">Revenue / dentist</div>
+            <div className="kpi-sub">per year</div>
+          </div>
+        </div>
+
+        {/* Revenue breakdown bars */}
+        <div className="divider" />
+        <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#7c97ae', marginBottom: 12 }}>
+          Revenue contribution by treatment
+        </div>
+        {TREATMENTS.map((tr, i) => {
+          const rev = tRevs[i];
+          const pct = grossRevenue > 0 ? (rev / grossRevenue) * 100 : 0;
+          return (
+            <div className="bar-row" key={tr.key}>
+              <div className="bar-label">
+                <span>{tr.icon} {tr.label}</span>
+                <span className="bar-amount">{fmtM(rev)} ({fmt(pct, 1)}%)</span>
+              </div>
+              <div className="bar-track"><div className={`bar-fill bar-t${i}`} style={{ width: `${pct}%` }} /></div>
+            </div>
+          );
+        })}
+      </SectionCard>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          SECTION 3 — COST STRUCTURE
+      ══════════════════════════════════════════════════════════════════ */}
+      <SectionCard id="costs" title="📋 Operating Cost Structure" collapsed={collapsed.costs} onToggle={() => toggleSection('costs')} className="section-gap">
+        <div className="grid-2">
+          <div>
+            <TooltipSlider tipKey="staffPct" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Staff costs (% of revenue)" value={staffPct} min={20} max={65} step={1}
+              onChange={setStaffPct} hints={['20%', '65%']} display={`${staffPct}% — ${fmtM(staffCost)}`} />
+            <TooltipSlider tipKey="materialsPct" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Materials & lab (% of revenue)" value={materialsPct} min={5} max={35} step={1}
+              onChange={setMaterialsPct} hints={['5%', '35%']} display={`${materialsPct}% — ${fmtM(matCost)}`} />
+            <TooltipSlider tipKey="fixedCosts" activeTooltip={activeTooltip} toggleTooltip={toggleTooltip}
+              label="Fixed annual costs" value={fixedCosts} min={20000} max={300000} step={5000}
+              onChange={setFixedCosts} hints={[fmtM(20000), fmtM(300000)]} display={fmtM(fixedCosts)} />
+            <div className="info-box" style={{ marginTop: 8 }}>
+              <div className="info-box-title">💡 Fixed costs include</div>
+              <div className="info-box-body">
+                Rent, utilities, insurance, equipment depreciation, software subscriptions, administrative staff, and all overhead not linked to visit volume.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              {[
+                { label: 'Staff', amount: fmtM(staffCost), pct: staffPct, cls: 'bar-staff' },
+                { label: 'Materials & Lab', amount: `${fmtM(matCost)} (${materialsPct}%)`, pct: materialsPct, cls: 'bar-materials' },
+                { label: 'Fixed Overhead', amount: `${fmtM(fixedCosts)} (${fmt(wFixed, 1)}%)`, pct: wFixed, cls: 'bar-fixed' },
+              ].map(b => (
+                <div className="bar-row" key={b.label}>
+                  <div className="bar-label"><span>{b.label}</span><span className="bar-amount">{b.amount}</span></div>
+                  <div className="bar-track"><div className={`bar-fill ${b.cls}`} style={{ width: `${b.pct}%` }} /></div>
+                </div>
+              ))}
+              <div className="divider" />
+              <div className="bar-row">
+                <div className="bar-label">
+                  <span style={{ fontWeight: 700, color: netProfit >= 0 ? '#059669' : '#dc2626' }}>
+                    {netProfit >= 0 ? 'Net Profit' : 'Net Loss'}
+                  </span>
+                  <span className="bar-amount" style={{ color: netProfit >= 0 ? '#059669' : '#dc2626' }}>
+                    {fmtM(netProfit)} ({fmt(profitMargin, 1)}%)
+                  </span>
+                </div>
+                <div className="bar-track">
+                  <div className={`bar-fill ${netProfit >= 0 ? 'bar-profit' : 'bar-loss'}`} style={{ width: `${Math.max(0, wProfit)}%` }} />
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="kpi-card neutral">
+                <div className="kpi-icon">🧾</div>
+                <div className="kpi-value animated">{fmtM(totalCosts / patients)}</div>
+                <div className="kpi-label">Total cost / patient</div>
+                <div className="kpi-sub">per year</div>
+              </div>
+              <div className={`kpi-card ${isFinite(breakEven) && breakEven <= patients ? 'green' : 'red'}`}>
+                <div className="kpi-icon">{isFinite(breakEven) && breakEven <= patients ? '✅' : '⚠️'}</div>
+                <div className="kpi-value animated">{isFinite(breakEven) ? fmt(breakEven) : '—'}</div>
+                <div className="kpi-label">Break-even patients</div>
+                <div className="kpi-sub">
+                  {isFinite(breakEven)
+                    ? (breakEven <= patients
+                      ? `${fmt(patients - breakEven)} above break-even`
+                      : `${fmt(breakEven - patients)} short`)
+                    : 'Variable costs exceed revenue'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          SECTION 4 — P&L DASHBOARD
+      ══════════════════════════════════════════════════════════════════ */}
+      <SectionCard id="pnl" title="📊 Profitability Dashboard" collapsed={collapsed.pnl} onToggle={() => toggleSection('pnl')} className="section-gap">
+        <div className="grid-2">
+          {/* Donut */}
+          <div>
+            <div style={{ fontWeight: 600, fontSize: '0.83rem', color: '#4a6273', marginBottom: 10 }}>Profit margin overview</div>
+            <div className="ring-section">
+              <div className="ring-container">
+                <Ring pct={Math.max(0, profitMargin)} size={130} stroke={13}
+                  color={netProfit >= 0 ? '#0369a1' : '#dc2626'} />
+                <div className="ring-label-center">
+                  <div className="ring-pct" style={{ color: netProfit >= 0 ? '#0369a1' : '#dc2626' }}>
+                    {fmt(Math.abs(profitMargin), 1)}%
+                  </div>
+                  <div className="ring-sub">{netProfit >= 0 ? 'MARGIN' : 'LOSS'}</div>
+                </div>
+              </div>
+              <div className="ring-legend">
+                {[
+                  { dot: '#0369a1', label: 'Net Profit',    val: fmtM(Math.max(0, netProfit)) },
+                  { dot: '#e74c3c', label: 'Total Costs',   val: fmtM(totalCosts) },
+                  { dot: '#f59e0b', label: 'Gross Revenue', val: fmtM(grossRevenue) },
+                ].map(l => (
+                  <div className="legend-item" key={l.label}>
+                    <div className="legend-dot" style={{ background: l.dot }} />
+                    <span className="legend-text">{l.label}</span>
+                    <span className="legend-val">{l.val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* P&L table */}
+          <div>
+            <div className="revenue-breakdown">
+              {[
+                { name: 'Gross Revenue',    tag: 'Revenue', tagCls: 'tag-revenue', amount: fmtM(grossRevenue), color: '#374151' },
+                { name: 'Staff Costs',      tag: 'Variable', tagCls: 'tag-expense', amount: `−${fmtM(staffCost)}`, color: '#c0392b' },
+                { name: 'Materials & Lab',  tag: 'Variable', tagCls: 'tag-expense', amount: `−${fmtM(matCost)}`, color: '#c0392b' },
+                { name: 'Fixed Overhead',   tag: 'Fixed',    tagCls: 'tag-expense', amount: `−${fmtM(fixedCosts)}`, color: '#c0392b' },
+              ].map(r => (
+                <div className="rev-row" key={r.name}>
+                  <span className="rev-name">{r.name}</span>
+                  <span className={`rev-tag ${r.tagCls}`}>{r.tag}</span>
+                  <span className="rev-amount" style={{ color: r.color }}>{r.amount}</span>
+                </div>
+              ))}
+              <div className="rev-row" style={{
+                background: netProfit >= 0 ? '#f0fdf6' : '#fff5f5',
+                borderRadius: 8, padding: '10px 10px', marginTop: 4
+              }}>
+                <span className="rev-name" style={{ fontWeight: 700 }}>Net Profit</span>
+                <span className="rev-tag" style={{ background: netProfit >= 0 ? '#dcfce7' : '#fee2e2', color: netProfit >= 0 ? '#166534' : '#991b1b' }}>
+                  {netProfit >= 0 ? 'Profit' : 'Loss'}
+                </span>
+                <span className="rev-amount" style={{ color: netProfit >= 0 ? '#059669' : '#dc2626', fontSize: '1.02rem' }}>
+                  {fmtM(netProfit)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom KPIs */}
+        <div className="grid-3 section-gap">
+          <div className={`kpi-card ${netProfit >= 0 ? 'highlight' : 'red'}`}>
+            <div className="kpi-icon">{netProfit >= 0 ? '💰' : '📉'}</div>
+            <div className="kpi-value animated">{fmtM(Math.abs(netProfit))}</div>
+            <div className="kpi-label">{netProfit >= 0 ? 'Net Profit' : 'Net Loss'}</div>
+            <div className="kpi-sub">{fmt(profitMargin, 1)}% of revenue</div>
+          </div>
+          <div className="kpi-card amber">
+            <div className="kpi-icon">🏆</div>
+            <div className="kpi-value animated">{fmtM(profitPerPt)}</div>
+            <div className="kpi-label">Profit per patient</div>
+            <div className="kpi-sub">per year · {fmt(patients)} patients</div>
+          </div>
+          <div className="kpi-card neutral">
+            <div className="kpi-icon">📈</div>
+            <div className="kpi-value animated">{fmtM(revPerDentist)}</div>
+            <div className="kpi-label">Revenue / dentist</div>
+            <div className="kpi-sub">per year · {dentists} dentist{dentists > 1 ? 's' : ''}</div>
+          </div>
+        </div>
+
+        {/* Scenario comparison */}
+        {reference && (
+          <>
+            <div className="divider" />
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#7c97ae', marginBottom: 8 }}>
+              📌 vs. Saved Reference
+            </div>
+            <table className="comparison-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Current</th>
+                  <th>Reference</th>
+                  <th>Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Gross Revenue</td>
+                  <td><strong>{fmtM(grossRevenue)}</strong></td>
+                  <td>{fmtM(reference.grossRevenue)}</td>
+                  <td>{deltaEur(grossRevenue, reference.grossRevenue)}</td>
+                </tr>
+                <tr>
+                  <td>Net Profit</td>
+                  <td><strong>{fmtM(netProfit)}</strong></td>
+                  <td>{fmtM(reference.netProfit)}</td>
+                  <td>{deltaEur(netProfit, reference.netProfit)}</td>
+                </tr>
+                <tr>
+                  <td>Profit Margin</td>
+                  <td><strong>{fmt(profitMargin, 1)}%</strong></td>
+                  <td>{fmt(reference.profitMargin, 1)}%</td>
+                  <td>{deltaPct(profitMargin, reference.profitMargin)}</td>
+                </tr>
+                <tr>
+                  <td>Chair Utilization</td>
+                  <td><strong>{fmt(utilization, 1)}%</strong></td>
+                  <td>{fmt(reference.utilization, 1)}%</td>
+                  <td>{deltaPct(utilization, reference.utilization)}</td>
+                </tr>
+                <tr>
+                  <td>Revenue / Dentist</td>
+                  <td><strong>{fmtM(revPerDentist)}</strong></td>
+                  <td>{fmtM(reference.revPerDentist)}</td>
+                  <td>{deltaEur(revPerDentist, reference.revPerDentist)}</td>
+                </tr>
+                <tr>
+                  <td>Break-even Patients</td>
+                  <td><strong>{isFinite(breakEven) ? fmt(breakEven) : '—'}</strong></td>
+                  <td>{isFinite(reference.breakEven) ? fmt(reference.breakEven) : '—'}</td>
+                  <td>{isFinite(breakEven) && isFinite(reference.breakEven) ? delta(breakEven, reference.breakEven) : '—'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+      </SectionCard>
+
+      <p className="footnote">
+        All figures are illustrative estimates for planning and benchmarking purposes. &nbsp;·&nbsp;
+        Adjust parameters to reflect your clinic's specific cost structure and patient profile. &nbsp;·&nbsp;
+        Presets are saved in your browser's local storage.
+      </p>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
