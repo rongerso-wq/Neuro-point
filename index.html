@@ -1,9 +1,847 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta http-equiv="refresh" content="0; url=arcade.html">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroPoint</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 440px;
+      width: min(100%, 960px);
+      background: #000;
+      border: 1px solid #374151;
+      border-radius: 3rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 140px; /* keep content above fixed footer */
+    }
+
+    .page {
+      display: none;
+      padding: 24px;
+      min-height: calc(100vh - 220px);
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* Home Page */
+    .home-header {
+      text-align: center;
+      padding: 32px 0 40px;
+    }
+
+    .home-title {
+      font-size: 2.25rem;
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: -0.025em;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .home-title .blue {
+      color: #3b82f6;
+    }
+
+    .home-subtitle {
+      font-size: 10px;
+      color: #64748b;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .nav-card {
+      width: 100%;
+      padding: 24px;
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 2rem;
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-card:hover {
+      background: #1f2937;
+    }
+
+    .nav-icon {
+      padding: 12px;
+      border-radius: 12px;
+      margin-right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-icon.blue { background: #2563eb; }
+    .nav-icon.purple { background: #9333ea; }
+
+    .nav-content h3 {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .nav-content p {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .summary-card {
+      background: rgba(17, 24, 39, 0.4);
+      border: 1px solid #374151;
+      padding: 24px;
+      border-radius: 2.5rem;
+      margin-top: 24px;
+    }
+
+    .summary-title {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .summary-grid {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .summary-item {
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .summary-value {
+      font-size: 1.5rem;
+      font-weight: 900;
+    }
+
+    .summary-unit {
+      font-size: 12px;
+      opacity: 0.3;
+    }
+
+    .summary-divider {
+      width: 1px;
+      height: 40px;
+      background: #374151;
+    }
+
+    /* Calculator Pages */
+    @media (min-width: 860px) {
+      body {
+        padding: 30px;
+      }
+      .container {
+        max-width: 760px;
+      }
+      .page {
+        padding: 32px;
+        min-height: calc(100vh - 220px);
+      }
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .thickness-btns, .pupil-btns, .selector-btns {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        padding: 18px;
+        min-height: calc(100vh - 240px);
+      }
+      .container {
+        margin-bottom: 160px;
+      }
+    }
+
+    /* Calculator Pages */
+    .back-btn {
+      display: flex;
+      align-items: center;
+      color: #60a5fa;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 24px;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    .page-title {
+      font-size: 1.875rem;
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .input-group {
+      background: #111827;
+      padding: 16px;
+      border: 1px solid #374151;
+      border-radius: 1rem;
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .input-field {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: white;
+      font-size: 1.875rem;
+      font-weight: 700;
+      width: 100%;
+    }
+
+    .input-field::placeholder {
+      color: #6b7280;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .thickness-btns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .thickness-btn {
+      padding: 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      background: #1f2937;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .thickness-btn.active {
+      background: #2563eb;
+      border-color: #60a5fa;
+      color: white;
+    }
+
+    .result-card {
+      padding: 32px;
+      border-radius: 2.5rem;
+      text-align: center;
+      border: 2px solid;
+      margin-top: 16px;
+      transition: all 0.5s;
+    }
+
+    .result-card.normal {
+      background: rgba(37, 99, 235, 0.1);
+      border-color: rgba(37, 99, 235, 0.3);
+    }
+
+    .result-card.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .result-value {
+      font-size: 3.75rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .result-unit {
+      font-size: 1.25rem;
+      opacity: 0.4;
+    }
+
+    .critical-alert {
+      font-size: 10px;
+      color: #ef4444;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 12px;
+    }
+
+    .clinical-note {
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
+
+    .clinical-note p {
+      margin: 0 0 8px 0;
+    }
+
+    .clinical-note p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Footer */
+    .clinical-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(17, 24, 39, 0.95);
+      border-top: 1px solid #374151;
+      padding: 16px;
+      font-size: 11px;
+      color: #9ca3af;
+      backdrop-filter: blur(10px);
+    }
+
+    .footer-content p {
+      margin: 4px 0;
+      line-height: 1.3;
+    }
+
+    .disclaimer {
+      color: #f59e0b;
+      font-weight: 600;
+      margin-top: 8px !important;
+    }
+
+    /* GCS Selectors */
+    .selector-group {
+      margin-bottom: 16px;
+      background: rgba(17, 24, 39, 0.5);
+      padding: 16px;
+      border: 1px solid #374151;
+      border-radius: 1rem;
+    }
+
+    .selector-label {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .selector-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .selector-btn {
+      flex: 1;
+      min-width: 65px;
+      padding: 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .selector-btn.active {
+      background: #9333ea;
+      border-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .selector-btn.inactive {
+      background: #1f2937;
+      color: #64748b;
+    }
+
+    .pupil-section {
+      background: #111827;
+      padding: 16px;
+      border: 1px solid #374151;
+      border-radius: 1rem;
+      margin-bottom: 16px;
+    }
+
+    .pupil-label {
+      font-size: 10px;
+      color: #f59e0b;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .pupil-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pupil-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pupil-btn.active {
+      background: #f59e0b;
+      color: black;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+
+    .pupil-btn.inactive {
+      background: #1f2937;
+      color: #64748b;
+    }
+
+    .gcs-result {
+      padding: 32px;
+      border-radius: 2.5rem;
+      text-align: center;
+      border: 2px solid;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+
+    .gcs-result.normal {
+      background: rgba(147, 51, 234, 0.1);
+      border-color: rgba(147, 51, 234, 0.3);
+    }
+
+    .gcs-result.critical {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+    }
+
+    .gcs-result.warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: #f59e0b;
+    }
+
+    .gcs-value {
+      font-size: 3.75rem;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+    }
+
+    .gcs-details {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 16px;
+    }
+
+    /* Hide number input spinners */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
 </head>
 <body>
-  <script>window.location.href = "arcade.html";</script>
+  <div class="container">
+    <!-- Home Page -->
+    <div id="home-page" class="page active">
+      <div class="home-header">
+        <div style="width: 40px; height: 40px; margin: 0 auto 16px; color: #3b82f6;">
+          <i data-lucide="brain"></i>
+        </div>
+        <h1 class="home-title">Neuro<span class="blue">Point</span></h1>
+        <p class="home-subtitle">Clinical Decision Suite</p>
+      </div>
+
+      <div>
+        <div class="nav-card" onclick="showPage('abc')">
+          <div class="nav-icon blue">
+            <i data-lucide="calculator"></i>
+          </div>
+          <div class="nav-content">
+            <h3>ABC/2 Volume</h3>
+            <p>Hematoma Estimation</p>
+          </div>
+        </div>
+
+        <div class="nav-card" onclick="showPage('gcs')">
+          <div class="nav-icon purple">
+            <i data-lucide="activity"></i>
+          </div>
+          <div class="nav-content">
+            <h3>GCS-P Score</h3>
+            <p>Neurological Assessment</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <p class="summary-title">Active Case Summary</p>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <p class="summary-label" style="color: #60a5fa;">Volume</p>
+            <h4 class="summary-value" id="summary-volume">0.0 <span class="summary-unit">mL</span></h4>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-item">
+            <p class="summary-label" style="color: #c084fc;">GCS-P</p>
+            <h4 class="summary-value" id="summary-gcs">15</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABC/2 Calculator Page -->
+    <div id="abc-page" class="page">
+      <button class="back-btn" onclick="showPage('home')">
+        <i data-lucide="chevron-left" style="margin-right: 4px;"></i>
+        Dashboard
+      </button>
+
+      <h2 class="page-title">ABC/2 Volume</h2>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <label class="input-label">A - Max diameter (cm)</label>
+          <input type="number" class="input-field" id="abc-a" placeholder="0.0" step="0.1" min="0" max="15">
+        </div>
+        <div class="input-group">
+          <label class="input-label">B - Perpendicular diameter (cm)</label>
+          <input type="number" class="input-field" id="abc-b" placeholder="0.0" step="0.1" min="0" max="15">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">C - Number of slices spanned</label>
+        <input type="number" class="input-field" id="abc-slices" placeholder="0" min="0" max="100">
+      </div>
+
+      <div class="thickness-btns">
+        <button class="thickness-btn" data-thickness="0.25" onclick="setThickness(0.25)">2.5mm</button>
+        <button class="thickness-btn active" data-thickness="0.5" onclick="setThickness(0.5)">5.0mm</button>
+        <button class="thickness-btn" data-thickness="1.0" onclick="setThickness(1.0)">10mm</button>
+      </div>
+
+      <div class="clinical-note">
+        <p><strong>ABC/2 Method:</strong> Approximates hematoma as ellipsoid. Volume = (A×B×C)/2</p>
+        <p><strong>Clinical Thresholds:</strong> ≥30mL for supratentorial ICH, consider location & patient factors</p>
+      </div>
+
+      <div class="result-card normal" id="abc-result">
+        <h1 class="result-value" id="abc-volume">0.0 <span class="result-unit">mL</span></h1>
+        <p class="critical-alert" id="abc-alert" style="display: none;">Critical: Surgical Threshold reached</p>
+      </div>
+    </div>
+
+    <!-- GCS-P Score Page -->
+    <div id="gcs-page" class="page">
+      <button class="back-btn" onclick="showPage('home')" style="color: #c084fc;">
+        <i data-lucide="chevron-left" style="margin-right: 4px;"></i>
+        Dashboard
+      </button>
+
+      <h2 class="page-title">GCS-P Score</h2>
+
+      <div class="selector-group">
+        <p class="selector-label">Eye (E)</p>
+        <div class="selector-btns">
+          <button class="selector-btn active" data-field="e" data-value="4" onclick="setGCS('e', 4)">Spont.</button>
+          <button class="selector-btn" data-field="e" data-value="3" onclick="setGCS('e', 3)">Sound</button>
+          <button class="selector-btn" data-field="e" data-value="2" onclick="setGCS('e', 2)">Pres.</button>
+          <button class="selector-btn" data-field="e" data-value="1" onclick="setGCS('e', 1)">None</button>
+        </div>
+      </div>
+
+      <div class="selector-group">
+        <p class="selector-label">Verbal (V)</p>
+        <div class="selector-btns">
+          <button class="selector-btn active" data-field="v" data-value="5" onclick="setGCS('v', 5)">Orient.</button>
+          <button class="selector-btn" data-field="v" data-value="4" onclick="setGCS('v', 4)">Conf.</button>
+          <button class="selector-btn" data-field="v" data-value="3" onclick="setGCS('v', 3)">Words</button>
+          <button class="selector-btn" data-field="v" data-value="2" onclick="setGCS('v', 2)">Sounds</button>
+          <button class="selector-btn" data-field="v" data-value="1" onclick="setGCS('v', 1)">None</button>
+        </div>
+      </div>
+
+      <div class="selector-group">
+        <p class="selector-label">Motor (M)</p>
+        <div class="selector-btns">
+          <button class="selector-btn active" data-field="m" data-value="6" onclick="setGCS('m', 6)">Obeys</button>
+          <button class="selector-btn" data-field="m" data-value="5" onclick="setGCS('m', 5)">Local.</button>
+          <button class="selector-btn" data-field="m" data-value="4" onclick="setGCS('m', 4)">Flex.</button>
+          <button class="selector-btn" data-field="m" data-value="3" onclick="setGCS('m', 3)">Abn.F</button>
+          <button class="selector-btn" data-field="m" data-value="2" onclick="setGCS('m', 2)">Ext.</button>
+          <button class="selector-btn" data-field="m" data-value="1" onclick="setGCS('m', 1)">None</button>
+        </div>
+      </div>
+
+      <div class="pupil-section">
+        <p class="pupil-label">Pupil Reaction (P)</p>
+        <div class="pupil-btns">
+          <button class="pupil-btn active" data-value="0" onclick="setPupils(0)">Both</button>
+          <button class="pupil-btn" data-value="1" onclick="setPupils(1)">One</button>
+          <button class="pupil-btn" data-value="2" onclick="setPupils(2)">None</button>
+        </div>
+      </div>
+
+      <div class="clinical-note">
+        <p><strong>GCS-P Score:</strong> Glasgow Coma Scale minus Pupil reactivity score</p>
+        <p><strong>Interpretation:</strong> ≤8 severe, 9-12 moderate, 13-15 mild TBI</p>
+      </div>
+
+      <div class="gcs-result normal" id="gcs-result">
+        <h1 class="gcs-value" id="gcs-score">15</h1>
+        <p class="gcs-details" id="gcs-details">GCS: 15 • P-Loss: 0</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentPage = 'home';
+    let abcData = { a: '', b: '', slices: '', thickness: 0.5 };
+    let gcsData = { e: 4, v: 5, m: 6, p: 0 };
+
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Page navigation
+    function showPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+
+      // Show selected page
+      document.getElementById(pageId + '-page').classList.add('active');
+      currentPage = pageId;
+
+      // Update summary if going to home
+      if (pageId === 'home') {
+        updateSummary();
+      }
+    }
+
+    // ABC/2 Calculator functions
+    function setThickness(thickness) {
+      abcData.thickness = thickness;
+
+      // Update button states
+      document.querySelectorAll('.thickness-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Handle floating point lookup (1.0 vs 1)
+      const thicknessKey = Number.isInteger(thickness) ? thickness.toFixed(1) : thickness.toString();
+      const selectedBtn = document.querySelector(`[data-thickness="${thicknessKey}"]`);
+      if (selectedBtn) {
+        selectedBtn.classList.add('active');
+      }
+
+      updateVolume();
+    }
+
+    function updateVolume() {
+      const a = parseFloat(document.getElementById('abc-a').value) || 0;
+      const b = parseFloat(document.getElementById('abc-b').value) || 0;
+      const slices = parseFloat(document.getElementById('abc-slices').value) || 0;
+
+      // Input validation for neuro doctors
+      if (a < 0 || a > 15) {
+        document.getElementById('abc-volume').textContent = 'Invalid A';
+        document.getElementById('abc-result').className = 'result-card normal';
+        document.getElementById('abc-alert').style.display = 'none';
+        return;
+      }
+      if (b < 0 || b > 15) {
+        document.getElementById('abc-volume').textContent = 'Invalid B';
+        document.getElementById('abc-result').className = 'result-card normal';
+        document.getElementById('abc-alert').style.display = 'none';
+        return;
+      }
+      if (slices < 0 || slices > 100) {
+        document.getElementById('abc-volume').textContent = 'Invalid Slices';
+        document.getElementById('abc-result').className = 'result-card normal';
+        document.getElementById('abc-alert').style.display = 'none';
+        return;
+      }
+
+      abcData.a = a;
+      abcData.b = b;
+      abcData.slices = slices;
+
+      const volume = (a * b * (slices * abcData.thickness)) / 2;
+      const volumeElement = document.getElementById('abc-volume');
+      const resultCard = document.getElementById('abc-result');
+      const alertElement = document.getElementById('abc-alert');
+
+      // Display appropriate precision
+      const displayVolume = volume < 1 ? volume.toFixed(2) : volume.toFixed(1);
+      volumeElement.textContent = displayVolume + ' mL';
+
+      // Clinical thresholds (supratentorial ICH)
+      if (volume >= 30) {
+        resultCard.className = 'result-card critical';
+        alertElement.textContent = 'Critical: Surgical threshold reached (≥30mL)';
+        alertElement.style.display = 'block';
+      } else if (volume >= 10) {
+        resultCard.className = 'result-card warning';
+        alertElement.textContent = 'Caution: Consider surgical evaluation';
+        alertElement.style.display = 'block';
+      } else {
+        resultCard.className = 'result-card normal';
+        alertElement.style.display = 'none';
+      }
+
+      updateSummary();
+    }
+
+    // GCS functions
+    function setGCS(field, value) {
+      gcsData[field] = value;
+
+      // Update button states
+      document.querySelectorAll(`[data-field="${field}"]`).forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-field="${field}"][data-value="${value}"]`).classList.add('active');
+
+      updateGCSScore();
+    }
+
+    function setPupils(value) {
+      gcsData.p = value;
+
+      // Update button states
+      document.querySelectorAll('.pupil-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-value="${value}"]`).classList.add('active');
+
+      updateGCSScore();
+    }
+
+    function updateGCSScore() {
+      // Validate GCS components
+      if (gcsData.e < 1 || gcsData.e > 4 || gcsData.v < 1 || gcsData.v > 5 || gcsData.m < 1 || gcsData.m > 6) {
+        document.getElementById('gcs-score').textContent = 'Invalid';
+        document.getElementById('gcs-details').textContent = 'Check GCS components';
+        document.getElementById('gcs-result').className = 'gcs-result normal';
+        return;
+      }
+
+      const totalGCS = gcsData.e + gcsData.v + gcsData.m;
+      const gcsP = totalGCS - gcsData.p;
+
+      document.getElementById('gcs-score').textContent = gcsP;
+      document.getElementById('gcs-details').textContent = `GCS: ${totalGCS} • P-Loss: ${gcsData.p}`;
+
+      const resultCard = document.getElementById('gcs-result');
+      if (gcsP <= 8) {
+        resultCard.className = 'gcs-result critical';
+      } else if (gcsP <= 12) {
+        resultCard.className = 'gcs-result warning';
+      } else {
+        resultCard.className = 'gcs-result normal';
+      }
+
+      updateSummary();
+    }
+
+    // Update home page summary
+    function updateSummary() {
+      const volume = (abcData.a * abcData.b * (abcData.slices * abcData.thickness)) / 2 || 0;
+      const totalGCS = gcsData.e + gcsData.v + gcsData.m;
+      const gcsP = totalGCS - gcsData.p;
+
+      // Display appropriate precision for summary
+      const displayVolume = volume < 1 ? volume.toFixed(2) : volume.toFixed(1);
+      document.getElementById('summary-volume').innerHTML = displayVolume + ' <span class="summary-unit">mL</span>';
+      document.getElementById('summary-gcs').textContent = gcsP;
+    }
+
+    // Event listeners
+    document.getElementById('abc-a').addEventListener('input', updateVolume);
+    document.getElementById('abc-b').addEventListener('input', updateVolume);
+    document.getElementById('abc-slices').addEventListener('input', updateVolume);
+
+    // Initialize
+    updateSummary();
+  </script>
+
+  <footer class="clinical-footer">
+    <div class="footer-content">
+      <p><strong>Clinical References:</strong></p>
+      <p>• ABC/2: Kothari et al. (1996) - Intracerebral hematoma volume calculation</p>
+      <p>• ICH Surgery: STICH II Trial (2013) - Surgical thresholds for ICH</p>
+      <p>• GCS-P: Brennan et al. (2008) - Pupil-adjusted GCS for TBI prognosis</p>
+      <p class="disclaimer">⚠️ This tool is for educational purposes only. Clinical decisions should be made by qualified medical professionals considering all patient factors.</p>
+    </div>
+  </footer>
 </body>
 </html>
