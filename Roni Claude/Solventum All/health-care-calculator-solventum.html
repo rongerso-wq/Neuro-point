@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solventum — Health Care Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* ══════════════════════════════════════════════
+       RESET & BASE
+    ══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, #012A24 0%, #01332B 50%, #01422F 100%);
+      background-attachment: fixed;
+      color: rgba(255,255,255,0.88);
+      min-height: 100vh;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ══════════════════════════════════════════════
+       NAVBAR
+    ══════════════════════════════════════════════ */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 56px;
+      background: #012A24;
+      border-bottom: 1px solid rgba(5,221,77,0.18);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+    }
+    .navbar-logo {
+      width: 30px; height: 30px;
+      border-radius: 7px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .navbar-logo svg { width: 100%; height: 100%; }
+    .navbar-brand {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+    .navbar-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.15);
+      margin: 0 4px;
+    }
+    .navbar-badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #05DD4D;
+      background: rgba(5,221,77,0.12);
+      border: 1px solid rgba(5,221,77,0.35);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .navbar-right { margin-left: auto; }
+    .btn-print {
+      display: flex; align-items: center; gap: 6px;
+      height: 30px; padding: 0 13px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.65);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-print:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.35); color: #fff; }
+    @media print { .navbar { display: none !important; } }
+
+    @media print {
+      .navbar, .btn-fullscreen { display: none !important; }
+      body { background: #ffffff !important; color: #000 !important; }
+      .card {
+        background: #f9f9f9 !important;
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .page { padding: 0 !important; }
+    }
+
+    /* ══════════════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════════════ */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 12px 56px;
+    }
+    @media (min-width: 600px) { .page { padding: 28px 20px 64px; } }
+    @media (min-width: 900px) { .page { padding: 36px 28px 72px; } }
+
+    /* ══════════════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════════════ */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .header-right { margin-left: auto; flex-shrink: 0; }
+    .btn-fullscreen {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(5,221,77,0.3);
+      border-radius: 8px;
+      background: rgba(5,221,77,0.08);
+      color: #05DD4D;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-fullscreen:hover { background: rgba(5,221,77,0.18); border-color: rgba(5,221,77,0.6); }
+    @media (min-width: 600px) { .header { gap: 16px; margin-bottom: 32px; } }
+    @media (min-width: 900px) { .header { margin-bottom: 40px; } }
+
+    .logo-mark {
+      width: 44px; height: 44px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(5,221,77,0.2);
+    }
+    @media (min-width: 600px) { .logo-mark { width: 48px; height: 48px; } }
+    .logo-mark svg { width: 100%; height: 100%; }
+
+    .header-text h1 {
+      font-size: clamp(1rem, 4.5vw, 1.55rem);
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .header-text p {
+      font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+      color: rgba(255,255,255,0.5);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    /* ══════════════════════════════════════════════
+       GRIDS
+    ══════════════════════════════════════════════ */
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+    @media (min-width: 480px) {
+      .grid-3 { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    }
+    @media (min-width: 860px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; gap: 22px; }
+    }
+
+    /* ══════════════════════════════════════════════
+       CARDS
+    ══════════════════════════════════════════════ */
+    .card {
+      background: rgba(1,66,47,0.6);
+      backdrop-filter: blur(8px);
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid rgba(5,221,77,0.15);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    @media (min-width: 600px) { .card { padding: 22px; } }
+    @media (min-width: 900px) { .card { padding: 28px; } }
+
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: rgba(5,221,77,0.7);
+      margin-bottom: 16px;
+    }
+
+    /* ══════════════════════════════════════════════
+       SLIDERS
+    ══════════════════════════════════════════════ */
+    .slider-row { margin-bottom: 22px; }
+    .slider-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px; gap: 8px;
+    }
+    .slider-label {
+      font-size: clamp(0.8rem, 2.8vw, 0.88rem);
+      font-weight: 500;
+      color: rgba(255,255,255,0.75);
+    }
+    .slider-value {
+      font-size: clamp(0.9rem, 3vw, 1.05rem);
+      font-weight: 700;
+      color: #05DD4D;
+      background: rgba(5,221,77,0.1);
+      border: 1px solid rgba(5,221,77,0.25);
+      padding: 3px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Track */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%; height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.12);
+      outline: none;
+      cursor: pointer;
+    }
+    @media (min-width: 900px) { input[type=range] { height: 5px; } }
+
+    /* Thumb */
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #05DD4D;
+      box-shadow: 0 0 0 3px rgba(5,221,77,0.2), 0 2px 8px rgba(5,221,77,0.5);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    @media (min-width: 900px) {
+      input[type=range]::-webkit-slider-thumb { width: 18px; height: 18px; }
+    }
+    input[type=range]::-webkit-slider-thumb:active {
+      transform: scale(1.25);
+      box-shadow: 0 0 0 5px rgba(5,221,77,0.25), 0 2px 10px rgba(5,221,77,0.6);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      border-radius: 50%; border: none;
+      background: #05DD4D;
+      box-shadow: 0 0 0 3px rgba(5,221,77,0.2), 0 2px 8px rgba(5,221,77,0.5);
+      cursor: pointer;
+    }
+
+    .slider-hints {
+      display: flex; justify-content: space-between;
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 5px;
+    }
+
+    /* ══════════════════════════════════════════════
+       TECHNIQUE COMPARISON
+    ══════════════════════════════════════════════ */
+    .technique-comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    @media (min-width: 480px) {
+      .technique-comparison { flex-direction: row; align-items: stretch; gap: 12px; }
+    }
+    @media (max-width: 479px) {
+      .technique-comparison { flex-direction: row; }
+    }
+
+    .technique-card {
+      flex: 1;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+    @media (max-width: 479px) {
+      .technique-card { padding: 12px 10px; }
+    }
+
+    .technique-card.old {
+      background: rgba(255,91,91,0.08);
+      border: 1px solid rgba(255,91,91,0.25);
+    }
+    .technique-card.new {
+      background: rgba(5,221,77,0.08);
+      border: 1px solid rgba(5,221,77,0.3);
+    }
+
+    .technique-label {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .technique-card.old .technique-label { color: #FF5B5B; }
+    .technique-card.new .technique-label { color: #05DD4D; }
+
+    .technique-minutes {
+      font-size: clamp(2rem, 7vw, 2.6rem);
+      font-weight: 800; line-height: 1; margin-bottom: 4px;
+    }
+    .technique-card.old .technique-minutes { color: #FF5B5B; }
+    .technique-card.new .technique-minutes { color: #05DD4D; }
+
+    .technique-unit { font-size: 0.78rem; color: rgba(255,255,255,0.45); }
+    .technique-name { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.65); margin-top: 6px; }
+
+    .vs-badge {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 800;
+      color: rgba(255,255,255,0.3);
+      flex-shrink: 0; width: 32px;
+    }
+
+    /* ══════════════════════════════════════════════
+       TIME BARS
+    ══════════════════════════════════════════════ */
+    .time-bar-section { margin-top: 18px; }
+    .time-bar-label {
+      font-size: 0.75rem; font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 5px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 6px; flex-wrap: wrap;
+    }
+    .bar-track {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 5px;
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+    .bar-old   { background: linear-gradient(90deg, #FF5B5B, rgba(255,91,91,0.6)); }
+    .bar-new   { background: linear-gradient(90deg, #05DD4D, rgba(5,221,77,0.6)); }
+    .bar-saved { background: linear-gradient(90deg, #FFB800, rgba(255,184,0,0.6)); }
+
+    /* ══════════════════════════════════════════════
+       KPI CARDS
+    ══════════════════════════════════════════════ */
+    .kpi-card {
+      border-radius: 14px; padding: 18px; text-align: center;
+      transition: transform 0.2s;
+    }
+    @media (min-width: 600px) { .kpi-card { padding: 22px; } }
+    .kpi-card:hover { transform: translateY(-2px); }
+
+    .kpi-card.highlight {
+      background: linear-gradient(135deg, rgba(5,221,77,0.18) 0%, rgba(5,221,77,0.08) 100%);
+      border: 1px solid rgba(5,221,77,0.4);
+      box-shadow: 0 6px 24px rgba(5,221,77,0.15);
+    }
+    .kpi-card.neutral {
+      background: rgba(1,51,43,0.7);
+      border: 1px solid rgba(5,221,77,0.15);
+    }
+    .kpi-card.amber {
+      background: linear-gradient(135deg, rgba(255,184,0,0.18) 0%, rgba(255,184,0,0.06) 100%);
+      border: 1px solid rgba(255,184,0,0.35);
+      box-shadow: 0 6px 24px rgba(255,184,0,0.1);
+    }
+    .kpi-card.blue {
+      background: rgba(1,51,43,0.7);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .kpi-icon { font-size: 1.4rem; margin-bottom: 6px; }
+
+    .kpi-value {
+      font-size: clamp(1.4rem, 5.5vw, 1.9rem);
+      font-weight: 800; line-height: 1.1;
+      color: #ffffff;
+    }
+    .kpi-card.highlight .kpi-value { color: #05DD4D; }
+    .kpi-card.amber .kpi-value     { color: #ffffff; }
+    .kpi-card.blue .kpi-value      { color: #ffffff; }
+    .kpi-card.neutral .kpi-value   { color: #ffffff; }
+
+    .kpi-label {
+      font-size: clamp(0.62rem, 2vw, 0.72rem);
+      font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-top: 5px;
+    }
+    .kpi-sub {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 5px;
+    }
+
+    /* ══════════════════════════════════════════════
+       REVENUE BREAKDOWN TABLE
+    ══════════════════════════════════════════════ */
+    .revenue-breakdown { margin-top: 16px; }
+    .rev-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      gap: 6px;
+    }
+    .rev-row:last-child { border-bottom: none; }
+    .rev-name {
+      font-size: 0.82rem; font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      flex: 1;
+    }
+    .rev-tag {
+      font-size: 0.66rem; font-weight: 600;
+      padding: 2px 7px; border-radius: 4px; flex-shrink: 0;
+      display: none;
+    }
+    @media (min-width: 480px) { .rev-tag { display: inline-block; } }
+
+    .tag-expense { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); }
+    .tag-profit  { background: rgba(5,221,77,0.15);  color: #05DD4D; }
+    .tag-revenue { background: rgba(255,184,0,0.15); color: #FFB800; }
+    .rev-amount  { font-size: 0.92rem; font-weight: 700; flex-shrink: 0; color: rgba(255,255,255,0.9); }
+
+    /* ══════════════════════════════════════════════
+       MARGIN GROWTH BARS
+    ══════════════════════════════════════════════ */
+    .growth-section { margin-top: 4px; }
+
+    .growth-row { margin-bottom: 18px; }
+    .growth-row-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .growth-row-label {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+    }
+    .growth-row-label.baseline { color: rgba(255,255,255,0.8); }
+    .growth-row-label.improved { color: #05DD4D; }
+    .growth-row-right { display: flex; align-items: center; gap: 8px; }
+    .growth-pct-baseline { font-size: 0.88rem; font-weight: 700; color: rgba(255,255,255,0.8); }
+    .growth-pct-new      { font-size: 0.88rem; font-weight: 800; color: #05DD4D; }
+    .growth-delta {
+      font-size: 0.68rem; font-weight: 700; color: #05DD4D;
+      background: rgba(5,221,77,0.1); border: 1px solid rgba(5,221,77,0.3);
+      padding: 2px 8px; border-radius: 20px;
+    }
+
+    .growth-track {
+      height: 22px; background: rgba(255,255,255,0.05);
+      border-radius: 6px; overflow: hidden; position: relative;
+    }
+    .growth-fill-base {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: rgba(255,255,255,0.14);
+      border-radius: 6px;
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .growth-fill-improvement {
+      position: absolute; top: 0; bottom: 0;
+      background: #05DD4D;
+      border-radius: 0 6px 6px 0;
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1), left 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .growth-fill-base-green {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: rgba(5,221,77,0.22);
+      border-radius: 6px;
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .growth-caption {
+      font-size: 0.68rem; color: rgba(255,255,255,0.7);
+      margin-top: 5px;
+    }
+    .growth-mini-legend {
+      display: flex; gap: 14px; margin-top: 6px;
+    }
+    .growth-mini-item { display: flex; align-items: center; gap: 5px; }
+    .growth-mini-dot  { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .growth-mini-text { font-size: 0.67rem; color: rgba(255,255,255,0.7); }
+
+    .growth-legend {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 14px; margin-top: 4px;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-text { font-size: 0.78rem; color: rgba(255,255,255,0.6); }
+    .legend-val  { font-size: 0.78rem; font-weight: 700; margin-left: auto; color: rgba(255,255,255,0.9); }
+
+    /* ══════════════════════════════════════════════
+       UTILITIES
+    ══════════════════════════════════════════════ */
+    .section-gap { margin-top: 16px; }
+    @media (min-width: 600px) { .section-gap { margin-top: 22px; } }
+
+    .animated { transition: all 0.35s ease; }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700;
+    }
+    .pill-green { background: rgba(5,221,77,0.15); color: #05DD4D; }
+    .pill-red   { background: rgba(255,91,91,0.15); color: #FF5B5B; }
+
+    .footnote {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.25);
+      margin-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 14px;
+      line-height: 1.8;
+    }
+
+    /* ══════════════════════════════════════════════
+       CALCULATION BOX
+    ══════════════════════════════════════════════ */
+    .calc-box {
+      background: rgba(255,184,0,0.07);
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,184,0,0.2);
+      overflow-wrap: break-word; word-break: break-word;
+    }
+    .calc-box-title {
+      font-size: 0.72rem; font-weight: 700;
+      color: #FFB800;
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .calc-box-body {
+      font-size: clamp(0.72rem, 2.2vw, 0.8rem);
+      color: rgba(255,255,255,0.55);
+      line-height: 1.75;
+    }
+    .calc-box-body strong { color: rgba(255,255,255,0.85); }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <div class="navbar-logo">
+    <svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+      <rect width="150" height="150" rx="28" fill="#00262A"/>
+      <path d="M70.89,34.04c0-9.29-6.69-15.2-16.17-15.2s-16.7,6.83-16.7,16.89,7.22,17.08,19.29,17.08h20.4c28.77,0,47.49,19.49,47.49,44.89s-19.29,44.89-45.66,44.89-45.66-18.57-45.66-44.17c0-9.29,3.18-19.1,7.99-26.37h10.97c-5.58,7.22-8.52,16.31-8.52,25.6,0,20.21,14.67,35.27,35.27,35.27s35.27-15.01,35.27-35.27-14.67-35.27-37.1-35.27h-20.21c-20.26,.05-29.73-12.03-29.73-26.66s12.08-26.37,26.9-26.37c16.31,0,26.37,10.97,26.37,23.77,0,1.54-.19,3.61-.67,5h-10.1c.34-1.11,.58-2.98,.58-4.09Z" fill="#00E676"/>
+    </svg>
+  </div>
+  <span class="navbar-brand">Solventum</span>
+  <div class="navbar-divider"></div>
+  <span class="navbar-badge">Health Care Calculator</span>
+  <div class="navbar-right">
+    <button class="btn-print" onclick="window.print()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      Print
+    </button>
+  </div>
+</nav>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n, decimals = 0) =>
+  n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+const fmtEur = (n) => `€\u202f${fmt(Math.round(n))}`;
+
+// ── Main Component ────────────────────────────────────────────────────────────
+function App() {
+  // Fullscreen
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  // Sliders
+  const [totalFillings, setTotalFillings] = useState(1215);
+  const [posteriorPct,  setPosteriorPct]  = useState(75);
+  const [chairCost,     setChairCost]     = useState(60);
+  const [oldMinutes,    setOldMinutes]    = useState(28);
+  const [newMinutes,    setNewMinutes]    = useState(12);
+
+  // Fluoride treatment sliders
+  const [hypersensitivePct, setHypersensitivePct] = useState(51);
+  const [acceptancePct,     setAcceptancePct]     = useState(10);
+  const [treatmentPrice,    setTreatmentPrice]    = useState(35);
+  const [materialCost,      setMaterialCost]      = useState(2.5);
+  const [applications,      setApplications]      = useState(2);
+
+  // Base clinic
+  const baseRevenue  = 250000;
+  const basePatients = 1575;
+
+  // ── Bulk Fill Calculations ────────────────────────────────────────────────
+  const posteriorCases = useMemo(() => Math.round(totalFillings * posteriorPct / 100), [totalFillings, posteriorPct]);
+  const oldHours       = useMemo(() => (oldMinutes * posteriorCases) / 60, [oldMinutes, posteriorCases]);
+  const newHours       = useMemo(() => (newMinutes * posteriorCases) / 60, [newMinutes, posteriorCases]);
+  const savedHours     = useMemo(() => oldHours - newHours, [oldHours, newHours]);
+  const savedEuros     = useMemo(() => savedHours * chairCost,  [savedHours, chairCost]);
+  const timeSavedPct   = useMemo(() => (savedHours / oldHours) * 100, [savedHours, oldHours]);
+
+  // ── Fluoride Calculations ────────────────────────────────────────────────
+  const hypersensitivePatients = useMemo(() => Math.round(basePatients * hypersensitivePct / 100), [hypersensitivePct]);
+  const acceptingPatients      = useMemo(() => Math.round(hypersensitivePatients * acceptancePct / 100), [hypersensitivePatients, acceptancePct]);
+  const fluorideRevenue        = useMemo(() => acceptingPatients * treatmentPrice * applications, [acceptingPatients, treatmentPrice, applications]);
+  const fluorideMaterialCost   = useMemo(() => materialCost * applications * acceptingPatients, [materialCost, applications, acceptingPatients]);
+  const fluorideTimeCost       = useMemo(() => (5 / 60) * applications * acceptingPatients * chairCost, [applications, acceptingPatients, chairCost]);
+  const fluorideProfit         = useMemo(() => fluorideRevenue - fluorideMaterialCost - fluorideTimeCost, [fluorideRevenue, fluorideMaterialCost, fluorideTimeCost]);
+
+  // ── Clinic P&L ───────────────────────────────────────────────────────────
+  const originalExpenses = baseRevenue * 0.70;
+  const originalProfit   = baseRevenue * 0.30;
+  const newRevenue       = baseRevenue + fluorideRevenue;
+  const newExpenses      = originalExpenses - savedEuros + fluorideMaterialCost + fluorideTimeCost;
+  const newProfit        = newRevenue - newExpenses;
+  const newProfitPct     = (newProfit / newRevenue) * 100;
+
+  // bar widths
+  const maxH  = oldHours;
+  const wOld  = 100;
+  const wNew  = (newHours  / maxH) * 100;
+  const wSave = (savedHours / maxH) * 100;
+
+  return (
+    <div className="page">
+
+      {/* ── Header ── */}
+      <div className="header">
+        <div className="logo-mark">
+          <svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+            <rect width="150" height="150" rx="28" fill="#00262A"/>
+            <path d="M70.89,34.04c0-9.29-6.69-15.2-16.17-15.2s-16.7,6.83-16.7,16.89,7.22,17.08,19.29,17.08h20.4c28.77,0,47.49,19.49,47.49,44.89s-19.29,44.89-45.66,44.89-45.66-18.57-45.66-44.17c0-9.29,3.18-19.1,7.99-26.37h10.97c-5.58,7.22-8.52,16.31-8.52,25.6,0,20.21,14.67,35.27,35.27,35.27s35.27-15.01,35.27-35.27-14.67-35.27-37.1-35.27h-20.21c-20.26,.05-29.73-12.03-29.73-26.66s12.08-26.37,26.9-26.37c16.31,0,26.37,10.97,26.37,23.77,0,1.54-.19,3.61-.67,5h-10.1c.34-1.11,.58-2.98,.58-4.09Z" fill="#00E676"/>
+          </svg>
+        </div>
+        <div className="header-text">
+          <h1>Clinic Profitability Calculator</h1>
+          <p>Filtek™ One Bulk Fill Restorative &amp; Clinpro™ Clear Fluoride Treatment — Impact Analysis</p>
+        </div>
+        <div className="header-right">
+          <button className="btn-fullscreen" onClick={toggleFullscreen} title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
+            {isFullscreen ? (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/>
+                <polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/>
+              </svg>
+            ) : (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 1 — BULK FILL EFFICIENCY
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="card">
+        <div className="card-title">⏱ Technique Efficiency — Bulk Fill vs. Incremental Layering</div>
+
+        <div className="grid-2">
+
+          {/* Left: sliders */}
+          <div>
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Annual fillings</span>
+                <span className="slider-value animated">{fmt(totalFillings)}</span>
+              </div>
+              <input type="range" min="400" max="3000" step="10"
+                value={totalFillings} onChange={e => setTotalFillings(+e.target.value)} />
+              <div className="slider-hints"><span>400</span><span>3,000</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Posterior sector share</span>
+                <span className="slider-value animated">{posteriorPct}%</span>
+              </div>
+              <input type="range" min="40" max="95" step="1"
+                value={posteriorPct} onChange={e => setPosteriorPct(+e.target.value)} />
+              <div className="slider-hints"><span>40%</span><span>95%</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Chair time cost (€/hour)</span>
+                <span className="slider-value animated">{fmtEur(chairCost)}/h</span>
+              </div>
+              <input type="range" min="30" max="200" step="5"
+                value={chairCost} onChange={e => setChairCost(+e.target.value)} />
+              <div className="slider-hints"><span>€30</span><span>€200</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Incremental layering time</span>
+                <span className="slider-value animated">{oldMinutes} min</span>
+              </div>
+              <input type="range" min="15" max="60" step="1"
+                value={oldMinutes} onChange={e => setOldMinutes(+e.target.value)} />
+              <div className="slider-hints"><span>15 min</span><span>60 min</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Bulk fill technique time</span>
+                <span className="slider-value animated">{newMinutes} min</span>
+              </div>
+              <input type="range" min="5" max={oldMinutes - 1} step="1"
+                value={newMinutes} onChange={e => setNewMinutes(+e.target.value)} />
+              <div className="slider-hints"><span>5 min</span><span>{oldMinutes - 1} min</span></div>
+            </div>
+          </div>
+
+          {/* Right: results */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+            <div className="technique-comparison">
+              <div className="technique-card old">
+                <div className="technique-label">Old Method</div>
+                <div className="technique-minutes">{oldMinutes}</div>
+                <div className="technique-unit">min / case</div>
+                <div className="technique-name">Incremental Layering</div>
+                <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#FF5B5B', fontWeight: 600 }}>
+                  {fmt(oldHours, 1)}h / year
+                </div>
+              </div>
+              <div className="vs-badge">VS</div>
+              <div className="technique-card new">
+                <div className="technique-label">Bulk Fill</div>
+                <div className="technique-minutes">{newMinutes}</div>
+                <div className="technique-unit">min / case</div>
+                <div className="technique-name">Bulk Fill (capsules)</div>
+                <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#05DD4D', fontWeight: 600 }}>
+                  {fmt(newHours, 1)}h / year
+                </div>
+              </div>
+            </div>
+
+            <div className="time-bar-section">
+              <div className="time-bar-label">
+                <span>Incremental layering — {fmt(oldHours, 1)}h</span>
+                <span className="pill pill-red">{fmt(posteriorCases)} cases</span>
+              </div>
+              <div className="bar-track"><div className="bar-fill bar-old" style={{ width: `${wOld}%` }} /></div>
+
+              <div className="time-bar-label">
+                <span>Bulk fill — {fmt(newHours, 1)}h</span>
+                <span className="pill pill-green">−{Math.round(timeSavedPct)}% time</span>
+              </div>
+              <div className="bar-track"><div className="bar-fill bar-new" style={{ width: `${wNew}%` }} /></div>
+
+              <div className="time-bar-label">
+                <span>⚡ Time saved — {fmt(savedHours, 1)}h</span>
+              </div>
+              <div className="bar-track"><div className="bar-fill bar-saved" style={{ width: `${wSave}%` }} /></div>
+            </div>
+
+            <div className="kpi-card highlight" style={{ marginTop: 4 }}>
+              <div className="kpi-icon">💰</div>
+              <div className="kpi-value animated">{fmtEur(savedEuros)}</div>
+              <div className="kpi-label">Annual savings from Bulk Fill</div>
+              <div className="kpi-sub">{fmt(savedHours, 1)} hours reclaimed · {fmt(posteriorCases)} posterior cases</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 2 — FLUORIDE REVENUE (Clinpro Clear)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="card section-gap">
+        <div className="card-title">🦷 New Revenue — Clinpro™ Clear Fluoride Treatment</div>
+
+        <div className="grid-2">
+          <div>
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Patients with hypersensitivity</span>
+                <span className="slider-value animated">{hypersensitivePct}% ({fmt(hypersensitivePatients)} p)</span>
+              </div>
+              <input type="range" min="10" max="80" step="1"
+                value={hypersensitivePct} onChange={e => setHypersensitivePct(+e.target.value)} />
+              <div className="slider-hints"><span>10%</span><span>80%</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Treatment acceptance rate</span>
+                <span className="slider-value animated">{acceptancePct}% ({fmt(acceptingPatients)} p)</span>
+              </div>
+              <input type="range" min="2" max="50" step="1"
+                value={acceptancePct} onChange={e => setAcceptancePct(+e.target.value)} />
+              <div className="slider-hints"><span>2%</span><span>50%</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Price per application</span>
+                <span className="slider-value animated">{fmtEur(treatmentPrice)}</span>
+              </div>
+              <input type="range" min="15" max="100" step="5"
+                value={treatmentPrice} onChange={e => setTreatmentPrice(+e.target.value)} />
+              <div className="slider-hints"><span>€15</span><span>€100</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Applications per year</span>
+                <span className="slider-value animated">{applications}</span>
+              </div>
+              <input type="range" min="1" max="4" step="1"
+                value={applications} onChange={e => setApplications(+e.target.value)} />
+              <div className="slider-hints"><span>1</span><span>4</span></div>
+            </div>
+
+            <div className="slider-row">
+              <div className="slider-header">
+                <span className="slider-label">Material cost per application</span>
+                <span className="slider-value animated">{fmtEur(materialCost)}</span>
+              </div>
+              <input type="range" min="1" max="15" step="0.5"
+                value={materialCost} onChange={e => setMaterialCost(+e.target.value)} />
+              <div className="slider-hints"><span>€1</span><span>€15</span></div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="kpi-card neutral">
+                <div className="kpi-icon">📋</div>
+                <div className="kpi-value animated">{fmt(acceptingPatients)}</div>
+                <div className="kpi-label">Patients treated</div>
+                <div className="kpi-sub">{acceptancePct}% of {fmt(hypersensitivePatients)} sensitive</div>
+              </div>
+              <div className="kpi-card neutral">
+                <div className="kpi-icon">💳</div>
+                <div className="kpi-value animated">{fmtEur(fluorideRevenue)}</div>
+                <div className="kpi-label">Gross revenue</div>
+                <div className="kpi-sub">{applications}× {fmtEur(treatmentPrice)} / patient</div>
+              </div>
+              <div className="kpi-card neutral">
+                <div className="kpi-icon">🧪</div>
+                <div className="kpi-value animated">{fmtEur(fluorideMaterialCost + fluorideTimeCost)}</div>
+                <div className="kpi-label">Treatment cost</div>
+                <div className="kpi-sub">Materials + chair time</div>
+              </div>
+              <div className="kpi-card blue">
+                <div className="kpi-icon">📈</div>
+                <div className="kpi-value animated">{fmtEur(Math.max(0, fluorideProfit))}</div>
+                <div className="kpi-label">Net profit</div>
+                <div className="kpi-sub">+ Patient loyalty</div>
+              </div>
+            </div>
+
+            <div className="calc-box">
+              <div className="calc-box-title">💡 How the calculation works</div>
+              <div className="calc-box-body">
+                {fmt(basePatients)} patients → {hypersensitivePct}% sensitive = <strong>{fmt(hypersensitivePatients)}</strong> → {acceptancePct}% accept = <strong>{fmt(acceptingPatients)} patients</strong><br/>
+                Revenue: {fmt(acceptingPatients)} × {fmtEur(treatmentPrice)} × {applications} = <strong>{fmtEur(fluorideRevenue)}</strong><br/>
+                Cost: ({fmtEur(materialCost)} mat. + 5min chair) × {applications} × {fmt(acceptingPatients)} = <strong>{fmtEur(fluorideMaterialCost + fluorideTimeCost)}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 3 — COMBINED P&L IMPACT
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="card section-gap">
+        <div className="card-title">📊 Combined Impact on Clinic P&amp;L</div>
+
+        <div className="grid-2">
+
+          {/* Left: Margin Growth Bars */}
+          <div>
+            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
+              Profit Margin — Baseline vs. After Improvements
+            </div>
+
+            <div className="growth-section">
+
+              {/* Baseline bar */}
+              <div className="growth-row">
+                <div className="growth-row-header">
+                  <span className="growth-row-label baseline">Baseline</span>
+                  <span className="growth-pct-baseline">30.0%</span>
+                </div>
+                <div className="growth-track">
+                  <div className="growth-fill-base" style={{ width: '30%' }} />
+                </div>
+                <div className="growth-caption">{fmtEur(baseRevenue)} revenue · {fmtEur(originalProfit)} profit</div>
+              </div>
+
+              {/* After improvements bar */}
+              <div className="growth-row">
+                <div className="growth-row-header">
+                  <span className="growth-row-label improved">After Improvements</span>
+                  <div className="growth-row-right">
+                    <span className="growth-delta">▲ +{fmt(newProfitPct - 30, 1)}pp</span>
+                    <span className="growth-pct-new">{fmt(Math.max(0, newProfitPct), 1)}%</span>
+                  </div>
+                </div>
+                <div className="growth-track">
+                  <div className="growth-fill-base-green" style={{ width: '30%' }} />
+                  <div className="growth-fill-improvement" style={{ left: '30%', width: `${Math.max(0, newProfitPct - 30)}%` }} />
+                </div>
+                <div className="growth-mini-legend">
+                  <div className="growth-mini-item">
+                    <div className="growth-mini-dot" style={{ background: 'rgba(5,221,77,0.22)' }} />
+                    <span className="growth-mini-text">Base 30%</span>
+                  </div>
+                  <div className="growth-mini-item">
+                    <div className="growth-mini-dot" style={{ background: '#05DD4D' }} />
+                    <span className="growth-mini-text">Improvement +{fmt(newProfitPct - 30, 1)}pp</span>
+                  </div>
+                </div>
+                <div className="growth-caption">{fmtEur(newRevenue)} revenue · {fmtEur(newProfit)} profit</div>
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Right: breakdown table */}
+          <div>
+            <div className="revenue-breakdown">
+              <div className="rev-row">
+                <span className="rev-name">Base Revenue</span>
+                <span className="rev-tag tag-revenue">Revenue</span>
+                <span className="rev-amount">{fmtEur(baseRevenue)}</span>
+              </div>
+              <div className="rev-row">
+                <span className="rev-name">+ Fluoride Treatment Revenue</span>
+                <span className="rev-tag tag-revenue">Revenue</span>
+                <span className="rev-amount" style={{ color: '#05DD4D' }}>+{fmtEur(fluorideRevenue)}</span>
+              </div>
+              <div className="rev-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                <span className="rev-name" style={{ fontWeight: 700, color: '#fff' }}>Total Revenue</span>
+                <span className="rev-tag tag-revenue">Total</span>
+                <span className="rev-amount" style={{ color: '#fff', fontWeight: 800 }}>{fmtEur(newRevenue)}</span>
+              </div>
+              <div className="rev-row">
+                <span className="rev-name">Base Fixed Expenses</span>
+                <span className="rev-tag tag-expense">Fixed</span>
+                <span className="rev-amount">{fmtEur(120000)}</span>
+              </div>
+              <div className="rev-row">
+                <span className="rev-name">Variable Expenses</span>
+                <span className="rev-tag tag-expense">Variable</span>
+                <span className="rev-amount">{fmtEur(55000)}</span>
+              </div>
+              <div className="rev-row">
+                <span className="rev-name">− Bulk Fill Savings</span>
+                <span className="rev-tag tag-profit">Savings</span>
+                <span className="rev-amount" style={{ color: '#05DD4D' }}>−{fmtEur(savedEuros)}</span>
+              </div>
+              <div className="rev-row">
+                <span className="rev-name">+ Fluoride Treatment Cost</span>
+                <span className="rev-tag tag-expense">Variable</span>
+                <span className="rev-amount">+{fmtEur(fluorideMaterialCost + fluorideTimeCost)}</span>
+              </div>
+              <div className="rev-row" style={{ background: 'rgba(5,221,77,0.07)', borderRadius: 10, padding: '12px 10px', marginTop: 6 }}>
+                <span className="rev-name" style={{ fontWeight: 700, color: '#fff' }}>Net Profit</span>
+                <span className="rev-tag tag-profit">Profit</span>
+                <span className="rev-amount" style={{ color: '#05DD4D', fontSize: '1.05rem' }}>{fmtEur(newProfit)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom KPIs */}
+        <div className="grid-3 section-gap">
+          <div className="kpi-card amber">
+            <div className="kpi-icon">⏰</div>
+            <div className="kpi-value animated">{fmt(savedHours, 1)}h</div>
+            <div className="kpi-label">Hours Saved / Year</div>
+            <div className="kpi-sub">With Bulk Fill technique</div>
+          </div>
+          <div className="kpi-card highlight">
+            <div className="kpi-icon">💰</div>
+            <div className="kpi-value animated">{fmtEur(savedEuros + Math.max(0, fluorideProfit))}</div>
+            <div className="kpi-label">Total Additional Profit</div>
+            <div className="kpi-sub">Bulk Fill + Fluoride combined</div>
+          </div>
+          <div className="kpi-card neutral">
+            <div className="kpi-icon">📈</div>
+            <div className="kpi-value animated">{fmt(newProfitPct, 1)}%</div>
+            <div className="kpi-label">New Profit Margin</div>
+            <div className="kpi-sub" style={{ color: '#05DD4D', fontWeight: 600 }}>
+              was 30.0% → now {fmt(newProfitPct, 1)}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footnote ── */}
+      <p className="footnote">
+        (1) Omnivision Study Spain 2017 – Key-Stone &nbsp;·&nbsp;
+        (2) Internal Solventum Estimation: Average chair time cost in Spain: €60/hour &nbsp;·&nbsp;
+        All figures are illustrative estimates for planning purposes.
+      </p>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
