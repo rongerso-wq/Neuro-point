@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import { TEAM_MEMBERS } from '../lib/seed.js'
-import { getCurrentUser, ROLES } from '../lib/authorization.js'
 import PageHeader from '../components/layout/PageHeader.jsx'
 import '../styles/settings.css'
 
+const ROLES = {
+  OWNER: 'owner',
+  EDITOR: 'editor',
+  VIEWER: 'viewer',
+}
+
 export default function Settings() {
-  const currentUser = getCurrentUser()
-  const canManageTeam = currentUser.role === ROLES.OWNER
+  // Single agency owner — can always manage team
+  const canManageTeam = true
+  const currentUser = { id: 'user-owner' }
 
   const [agencyName, setAgencyName] = useState('Agency Name')
   const [agencyEmail, setAgencyEmail] = useState('admin@agency.example')
