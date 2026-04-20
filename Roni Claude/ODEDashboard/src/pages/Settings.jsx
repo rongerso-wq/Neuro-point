@@ -1,8 +1,13 @@
 import { useState } from 'react'
+import { TEAM_MEMBERS } from '../lib/seed.js'
+import { getCurrentUser, ROLES } from '../lib/authorization.js'
 import PageHeader from '../components/layout/PageHeader.jsx'
 import '../styles/settings.css'
 
 export default function Settings() {
+  const currentUser = getCurrentUser()
+  const canManageTeam = currentUser.role === ROLES.OWNER
+
   const [agencyName, setAgencyName] = useState('Agency Name')
   const [agencyEmail, setAgencyEmail] = useState('admin@agency.example')
   const [agencyPhone, setAgencyPhone] = useState('+1 (555) 123-4567')
@@ -14,11 +19,12 @@ export default function Settings() {
     { id: 'yt', platform: 'YouTube', handle: 'Agency Channel', connected: false },
   ])
 
-  const [teamMembers] = useState([
-    { id: 'u1', name: 'User One', role: 'Owner', email: 'user1@agency.example' },
-    { id: 'u2', name: 'User Two', role: 'Content Creator', email: 'user2@agency.example' },
-    { id: 'u3', name: 'User Three', role: 'Campaign Manager', email: 'user3@agency.example' },
-  ])
+  const [showInviteForm, setShowInviteForm] = useState(false)
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    role: ROLES.EDITOR,
+  })
+  const [inviteError, setInviteError] = useState('')
 
   const [brandKit] = useState({
     primaryColor: '#0a0a0a',
@@ -31,6 +37,48 @@ export default function Settings() {
     setConnectedAccounts((prev) =>
       prev.map((acc) => (acc.id === id ? { ...acc, connected: !acc.connected } : acc))
     )
+  }
+
+  const handleInviteSubmit = (e) => {
+    e.preventDefault()
+    setInviteError('')
+
+    if (!inviteForm.email.trim()) {
+      setInviteError('דוא״ל נדרש')
+      return
+    }
+    if (!inviteForm.email.includes('@')) {
+      setInviteError('דוא״ל לא חוקי')
+      return
+    }
+
+    // Check if email already exists
+    if (TEAM_MEMBERS.some((m) => m.email === inviteForm.email.trim())) {
+      setInviteError('המשתמש כבר בצוות')
+      return
+    }
+
+    // Success
+    setInviteForm({ email: '', role: ROLES.EDITOR })
+    setShowInviteForm(false)
+  }
+
+  const getRoleLabel = (role) => {
+    const labels = {
+      owner: 'בעלים',
+      editor: 'עורך',
+      viewer: 'צופה',
+    }
+    return labels[role] || role
+  }
+
+  const getRoleColor = (role) => {
+    const colors = {
+      owner: '#0a0a0a',
+      editor: '#6b7280',
+      viewer: '#d1d5db',
+    }
+    return colors[role]
   }
 
   return (
@@ -106,23 +154,106 @@ export default function Settings() {
 
       {/* Team Members */}
       <section className="settings-section">
-        <h2 className="section-title">חברי צוות</h2>
+        <div className="section-header">
+          <h2 className="section-title">חברי צוות</h2>
+          <span className="member-count">{TEAM_MEMBERS.length} חברים</span>
+        </div>
         <div className="team-list">
-          {teamMembers.map((member) => (
+          {TEAM_MEMBERS.map((member) => (
             <div key={member.id} className="team-member-card">
-              <div className="member-avatar">{member.name.charAt(0)}</div>
+              <div
+                className="member-avatar"
+                style={{ backgroundColor: getRoleColor(member.role) }}
+                title={member.role}
+              >
+                {member.initials}
+              </div>
               <div className="member-info">
-                <div className="member-name">{member.name}</div>
+                <div className="member-name">
+                  {member.name}
+                  {member.id === currentUser.id && <span className="member-badge">אתה</span>}
+                </div>
                 <div className="member-email">{member.email}</div>
               </div>
-              <div className="member-role">{member.role}</div>
-              <div className="member-actions">
-                <button className="btn-icon">⋯</button>
-              </div>
+              <div className="member-role-badge">{getRoleLabel(member.role)}</div>
+              {canManageTeam && member.role !== ROLES.OWNER && (
+                <div className="member-actions">
+                  <button
+                    className="btn-action-small"
+                    title="הסר מהצוות"
+                    disabled={member.role === ROLES.OWNER}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
-        <button className="btn-secondary">הוסף חבר צוות</button>
+
+        {showInviteForm ? (
+          <form onSubmit={handleInviteSubmit} className="invite-form">
+            <h3 className="form-title">הזמן חבר צוות</h3>
+
+            {inviteError && <div className="form-error">{inviteError}</div>}
+
+            <div className="form-group">
+              <label htmlFor="invite-email">דוא״ל</label>
+              <input
+                id="invite-email"
+                type="email"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                placeholder="user@example.com"
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="invite-role">תפקיד</label>
+              <select
+                id="invite-role"
+                value={inviteForm.role}
+                onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+                className="form-input"
+              >
+                <option value={ROLES.EDITOR}>עורך — יוצר ועורך תוכן</option>
+                <option value={ROLES.VIEWER}>צופה — צפייה בדוחות בלבד</option>
+              </select>
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setShowInviteForm(false)
+                  setInviteError('')
+                }}
+              >
+                ביטול
+              </button>
+              <button type="submit" className="btn-primary">
+                שלח הזמנה
+              </button>
+            </div>
+          </form>
+        ) : (
+          <button
+            className="btn-secondary"
+            onClick={() => setShowInviteForm(true)}
+            disabled={!canManageTeam}
+            title={!canManageTeam ? 'רק בעלים יכולים להזמין חברים' : ''}
+          >
+            + הוסף חבר צוות
+          </button>
+        )}
+
+        {!canManageTeam && (
+          <div className="permission-notice">
+            רק בעלי הסוכנות יכולים לנהל את הצוות.
+          </div>
+        )}
       </section>
 
       {/* Brand Kit */}

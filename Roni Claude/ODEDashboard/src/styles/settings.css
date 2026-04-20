@@ -13,11 +13,28 @@
   margin-bottom: var(--sp-64);
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-24);
+  gap: var(--sp-16);
+}
+
 .section-title {
   font-size: var(--fs-20);
   font-weight: var(--fw-semibold);
-  margin-bottom: var(--sp-24);
   color: var(--text);
+  margin: 0;
+}
+
+.member-count {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+  background: var(--surface-2);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
 }
 
 /* Forms */
@@ -202,6 +219,19 @@
   font-size: var(--fs-15);
   font-weight: var(--fw-semibold);
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+
+.member-badge {
+  display: inline-block;
+  font-size: var(--fs-12);
+  background: var(--surface-2);
+  color: var(--text-subtle);
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  font-weight: var(--fw-medium);
 }
 
 .member-email {
@@ -213,6 +243,42 @@
   font-size: var(--fs-13);
   color: var(--text-subtle);
   font-weight: var(--fw-medium);
+}
+
+.member-role-badge {
+  display: inline-block;
+  font-size: var(--fs-12);
+  padding: 6px 12px;
+  border-radius: var(--r-xs);
+  font-weight: var(--fw-medium);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.btn-action-small {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--fs-20);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-xs);
+}
+
+.btn-action-small:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.btn-action-small:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .member-actions button {
@@ -241,9 +307,59 @@
   transition: all var(--t-fast) var(--ease-out);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: var(--text);
   color: var(--bg);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Invite Form */
+.invite-form {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-32);
+  background: var(--surface);
+  margin-top: var(--sp-24);
+}
+
+.form-title {
+  font-size: var(--fs-17);
+  font-weight: var(--fw-semibold);
+  margin: 0 0 var(--sp-24) 0;
+  color: var(--text);
+}
+
+.form-error {
+  padding: 12px 16px;
+  background: rgba(220, 38, 38, 0.05);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--r-xs);
+  color: #dc2626;
+  font-size: var(--fs-13);
+  margin-bottom: var(--sp-24);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--sp-12);
+  margin-top: var(--sp-24);
+}
+
+.form-actions button {
+  flex: 1;
+}
+
+.permission-notice {
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-radius: var(--r-xs);
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+  margin-top: var(--sp-16);
 }
 
 /* Brand Kit */

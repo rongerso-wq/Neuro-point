@@ -133,10 +133,50 @@ export const ACTIVITY = [
   { id: 'a4', at: days(-1.0), text: 'דוח שבועי נשלח ל־Helios Labs' },
 ]
 
+export const TEAM_MEMBERS = [
+  {
+    id: 'user-owner',
+    name: 'Owner/Agency',
+    role: 'owner',
+    email: 'owner@agency.example',
+    initials: 'AG',
+    joinedAt: days(-60),
+    status: 'active',
+  },
+  {
+    id: 'user-editor-1',
+    name: 'Sarah Chen',
+    role: 'editor',
+    email: 'sarah@agency.example',
+    initials: 'SC',
+    joinedAt: days(-45),
+    status: 'active',
+  },
+  {
+    id: 'user-editor-2',
+    name: 'Yossi Levi',
+    role: 'editor',
+    email: 'yossi@agency.example',
+    initials: 'YL',
+    joinedAt: days(-20),
+    status: 'active',
+  },
+  {
+    id: 'user-viewer-1',
+    name: 'David Marketing',
+    role: 'viewer',
+    email: 'david@agency.example',
+    initials: 'DM',
+    joinedAt: days(-10),
+    status: 'active',
+  },
+]
+
 export const SEED = {
   clients: CLIENTS,
   posts: POSTS,
   campaigns: CAMPAIGNS,
   activity: ACTIVITY,
+  teamMembers: TEAM_MEMBERS,
   selectedClientId: null, // null = "all clients"
 }
